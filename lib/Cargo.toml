@@ -1,0 +1,12 @@
+[package]
+edition = "2018"
+name = "hc_elo"
+version = "0.1.0"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+hdk = "0.0.108"
+holo_hash = {version = "0.0.7", features = ["encoding"]}
+serde = "1"
+skill-rating = "0.0.1"
