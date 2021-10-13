@@ -1,0 +1,9 @@
+---
+manifest_version: "1"
+name: example-elo
+uuid: 00000000-0000-0000-0000-000000000000
+properties: ~
+zomes: 
+  - name: elo
+    bundled: ../../target/wasm32-unknown-unknown/release/example.wasm
+

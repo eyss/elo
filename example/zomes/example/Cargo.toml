@@ -1,0 +1,16 @@
+[package]
+edition = "2018"
+name = "my_zome"
+version = "0.0.1"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+name = "my_zome"
+
+[dependencies]
+derive_more = "0"
+serde = "1"
+
+hc_elo = {path = "../../../lib"}
+hdk = "0.0.110"
+holo_hash = {version = "0.0.9", features = ["encoding"]}

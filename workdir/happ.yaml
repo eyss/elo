@@ -1,0 +1,28 @@
+---
+manifest_version: "1"
+name: my-app
+description: ~
+slots:
+
+  - id: my-dna
+    provisioning:
+      strategy: create
+      deferred: false
+    dna:
+      bundled: "../dnas/my-dna/workdir/my-dna.dna"
+      properties: ~
+      uuid: ~
+      version: ~
+      clone_limit: 0
+
+  - id: new-dna-2
+    provisioning:
+      strategy: create
+      deferred: false
+    dna:
+      bundled: "../dnas/new-dna-2/workdir/new-dna-2.dna"
+      properties: ~
+      uuid: ~
+      version: ~
+      clone_limit: 0
+
