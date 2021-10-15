@@ -64,21 +64,7 @@ pub fn send_publish_game_result_request<S: EloRatingSystem>(
                         new_game_result.clone(),
                         vec![my_response, counterparty_preflight_response],
                     )?;
-                    /* 
-                    let opponent = new_game_result.counterparty()?;
 
-                    let new_game_result_hash = hash_entry(new_game_result)?;
-                    create_link(
-                        AgentPubKey::from(opponent).into(),
-                        new_game_result_hash.clone(),
-                        game_results_tag(),
-                    )?;
-
-                    create_link(
-                        agent_info()?.agent_latest_pubkey.into(),
-                        new_game_result_hash.clone(),
-                        game_results_tag(),
-                    )?; */
                     Ok(())
                 }
                 PublishGameResultResponse::OutdatedLastGameResult {

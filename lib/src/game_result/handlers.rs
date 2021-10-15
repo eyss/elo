@@ -54,7 +54,7 @@ pub(crate) fn create_countersigned_game_result(
     Ok(header_hash)
 }
 
-pub fn get_games_results_for_agents(
+pub fn get_game_results_for_agents(
     agent_pub_keys: Vec<AgentPubKeyB64>,
 ) -> ExternResult<BTreeMap<AgentPubKeyB64, Vec<(HeaderHashed, GameResult)>>> {
     let game_results_links = get_game_results_links_for_agents(agent_pub_keys)?;

@@ -3,7 +3,13 @@ use hdk::prelude::*;
 
 use crate::{
     countersigning::sender::try_create_countersigned_game_result,
-    game_result::handlers::{build_new_game_result, create_unilateral_game_result_and_flag},
+    game_result::{
+        handlers::{
+            build_new_game_result, create_unilateral_game_result_and_flag, element_to_game_result,
+            game_results_tag,
+        },
+        GameResult,
+    },
     EloRatingSystem,
 };
 
@@ -20,6 +26,42 @@ pub fn init_elo() -> ExternResult<()> {
     })?;
 
     schedule("scheduled_try_resolve_unpublished_game_results")?;
+
+    Ok(())
+}
+
+pub fn post_commit_elo(header_hashes: Vec<HeaderHash>) -> ExternResult<()> {
+    let filter = ChainQueryFilter::new()
+        .entry_type(GameResult::entry_type()?)
+        .include_entries(true);
+    let elements = query(filter)?;
+
+    let newly_created_game_results_elements: Vec<Element> = elements
+        .into_iter()
+        .filter(|el| header_hashes.contains(el.header_address()))
+        .collect();
+
+    let newly_created_game_results = newly_created_game_results_elements
+        .into_iter()
+        .map(|el| element_to_game_result(el))
+        .collect::<ExternResult<Vec<(HeaderHashed, GameResult)>>>()?;
+
+    for (_, new_game_result) in newly_created_game_results {
+        let opponent = new_game_result.counterparty()?;
+
+        let new_game_result_hash = hash_entry(new_game_result)?;
+        create_link(
+            AgentPubKey::from(opponent).into(),
+            new_game_result_hash.clone(),
+            game_results_tag(),
+        )?;
+
+        create_link(
+            agent_info()?.agent_latest_pubkey.into(),
+            new_game_result_hash.clone(),
+            game_results_tag(),
+        )?;
+    }
 
     Ok(())
 }
@@ -90,10 +132,10 @@ macro_rules! mixin_elo {
          * Get the game results for the given agents
          */
         #[hdk_extern]
-        pub fn get_games_results_for_agents(
+        pub fn get_game_results_for_agents(
             agent_pub_keys: Vec<AgentPubKeyB64>,
         ) -> ExternResult<BTreeMap<AgentPubKeyB64, Vec<(HeaderHashed, $crate::GameResult)>>> {
-            $crate::get_games_results_for_agents(agent_pub_keys)
+            $crate::get_game_results_for_agents(agent_pub_keys)
         }
 
         /**

@@ -19,7 +19,6 @@ pub enum PublishGameResultResponse {
     },
 }
 
-
 pub(crate) fn build_game_result_preflight(
     game_result: &GameResult,
 ) -> ExternResult<PreflightRequest> {
@@ -29,13 +28,7 @@ pub(crate) fn build_game_result_preflight(
 
     let agent_info = agent_info()?;
 
-    let zome_info = zome_info()?;
-
-    let header_base = HeaderBase::Create(CreateBase::new(EntryType::App(AppEntryType::new(
-        EntryDefIndex::from(0),
-        zome_info.zome_id,
-        EntryVisibility::Public,
-    ))));
+    let header_base = HeaderBase::Create(CreateBase::new(GameResult::entry_type()?));
 
     let opponent_address = game_result.counterparty()?;
 

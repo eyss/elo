@@ -3,8 +3,8 @@ use hdk::prelude::*;
 use skill_rating::elo::EloRating;
 
 pub mod handlers;
-pub mod validation;
 pub mod unpublished;
+pub mod validation;
 
 #[hdk_entry(id = "game_result")]
 #[derive(Clone, PartialEq, PartialOrd)]
@@ -46,6 +46,14 @@ impl GameResult {
             self.player_a.player_address.clone(),
             self.player_b.player_address.clone(),
         )
+    }
+
+    pub fn entry_type() -> ExternResult<EntryType> {
+        Ok(EntryType::App(AppEntryType::new(
+            EntryDefIndex::from(0),
+            zome_info()?.zome_id,
+            EntryVisibility::Public,
+        )))
     }
 }
 

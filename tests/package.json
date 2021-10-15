@@ -10,6 +10,7 @@
   "license": "CAL-1.0",
   "dependencies": {
     "@holochain-open-dev/core-types": "^0.1.1",
+    "@holochain/conductor-api": "github:holochain/holochain-conductor-api#cc7738671551683baac4758ebeffac265bdc3348",
     "@msgpack/msgpack": "^2.7.0",
     "esm": "^3.2.25",
     "js-base64": "^3.6.1",

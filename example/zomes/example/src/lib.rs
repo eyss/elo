@@ -32,6 +32,13 @@ pub fn init(_: ()) -> ExternResult<InitCallbackResult> {
 }
 
 #[hdk_extern]
+fn post_commit(header_hashes: HeaderHashes) -> ExternResult<PostCommitCallbackResult> {
+    post_commit_elo(header_hashes.0)?;
+
+    Ok(PostCommitCallbackResult::Success)
+}
+
+#[hdk_extern]
 pub fn publish_result(result: (AgentPubKeyB64, f32)) -> ExternResult<()> {
     attempt_create_countersigned_game_result::<ChessEloRating>(
         GameInfo2 {

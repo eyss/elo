@@ -33,10 +33,11 @@ export default (orchestrator: Orchestrator<any>) =>
 
     await sleep(5000);
 
-    let gameResults = await bob.call("elo", "get_games_results_for_agents", [
+    let gameResults = await bob.call("elo", "get_game_results_for_agents", [
       aliceKey,
       bobKey,
     ]);
+    
     let aliceGameResult = gameResults[aliceKey][0];
     let bobGameResult = gameResults[aliceKey][0];
     t.deepEqual(aliceGameResult[1].player_a, {
@@ -65,7 +66,7 @@ export default (orchestrator: Orchestrator<any>) =>
 
     await sleep(2000);
 
-    gameResults = await bob.call("elo", "get_games_results_for_agents", [
+    gameResults = await bob.call("elo", "get_game_results_for_agents", [
       aliceKey,
       bobKey,
     ]);
