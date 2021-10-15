@@ -5,7 +5,54 @@ use hdk::prelude::*;
 
 use crate::{elo_rating::elo_rating_from_last_game_result, elo_rating_system::EloRatingSystem};
 
-use super::{EloUpdate, GameResult};
+use super::{unpublished::unpublished_game_tag, EloUpdate, GameResult};
+
+pub(crate) fn create_unilateral_game_result_and_flag(
+    game_result: GameResult,
+) -> ExternResult<HeaderHashB64> {
+    let header_hash = create_entry(game_result.clone())?;
+
+    let opponent = game_result.counterparty()?;
+
+    let game_result_hash = hash_entry(game_result)?;
+
+    create_link(
+        agent_info()?.agent_latest_pubkey.into(),
+        game_result_hash.clone(),
+        game_results_tag(),
+    )?;
+
+    create_link(
+        AgentPubKey::from(opponent).into(),
+        game_result_hash,
+        unpublished_game_tag(),
+    )?;
+
+    Ok(header_hash.into())
+}
+
+pub(crate) fn create_countersigned_game_result(
+    game_result: GameResult,
+    responses: Vec<PreflightResponse>,
+) -> ExternResult<HeaderHash> {
+    let header_hash = HDK.with(|h| {
+        h.borrow().create(CreateInput::new(
+            (&game_result).into(),
+            Entry::CounterSign(
+                Box::new(
+                    CounterSigningSessionData::try_from_responses(responses).map_err(
+                        |countersigning_error| WasmError::Guest(countersigning_error.to_string()),
+                    )?,
+                ),
+                game_result.clone().try_into()?,
+            ),
+            // Countersigned entries MUST have strict ordering.
+            ChainTopOrdering::Strict,
+        ))
+    })?;
+
+    Ok(header_hash)
+}
 
 pub fn get_games_results_for_agents(
     agent_pub_keys: Vec<AgentPubKeyB64>,
@@ -116,6 +163,19 @@ pub(crate) fn internal_build_new_game_result<S: EloRatingSystem>(
 
 /** Helper functions */
 
+pub(crate) fn get_my_last_game_result() -> ExternResult<Option<(HeaderHashed, GameResult)>> {
+    let agent_info = agent_info()?;
+
+    let game_results =
+        get_last_game_result_for_agents(vec![agent_info.agent_latest_pubkey.clone().into()])?;
+
+    let my_actual_latest_game_result = game_results
+        .get(&AgentPubKeyB64::from(agent_info.agent_latest_pubkey))
+        .ok_or(WasmError::Guest("Unreachable".into()))?;
+
+    Ok(my_actual_latest_game_result.clone())
+}
+
 pub(crate) fn get_last_game_result_for_agents(
     agent_pub_keys: Vec<AgentPubKeyB64>,
 ) -> ExternResult<BTreeMap<AgentPubKeyB64, Option<(HeaderHashed, GameResult)>>> {
@@ -198,12 +258,8 @@ pub(crate) fn get_game_results_from_links(
         let mut results_for_agent: Vec<(HeaderHashed, GameResult)> = Vec::new();
         for _ in links {
             if let Some(game_result_element) = all_game_results_elements[index].clone() {
-                let game_result: GameResult = game_result_element
-                    .entry()
-                    .to_app_option()?
-                    .ok_or(WasmError::Guest("Malformed GameResults entry".into()))?;
-
-                results_for_agent.push((game_result_element.header_hashed().clone(), game_result));
+                let game_result = element_to_game_result(game_result_element)?;
+                results_for_agent.push(game_result);
             }
             index += 1;
         }
@@ -211,4 +267,22 @@ pub(crate) fn get_game_results_from_links(
     }
 
     Ok(game_results)
+}
+
+pub(crate) fn element_to_game_result(element: Element) -> ExternResult<(HeaderHashed, GameResult)> {
+    let entry = element
+        .entry()
+        .as_option()
+        .ok_or(WasmError::Guest("Malformed GameResults entry".into()))?;
+
+    let bytes = match entry.clone() {
+        Entry::App(bytes) => Ok(bytes.into_sb()),
+        Entry::CounterSign(_, bytes) => Ok(bytes.into_sb()),
+        _ => Err(WasmError::Guest("Malformed GameResults entry".into())),
+    }?;
+
+    let game_result = GameResult::try_from(bytes)
+        .or(Err(WasmError::Guest("Malformed GameResults entry".into())))?;
+
+    Ok((element.header_hashed().clone(), game_result))
 }

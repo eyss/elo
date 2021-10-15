@@ -118,6 +118,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "example_elo"
+version = "0.0.1"
+dependencies = [
+ "derive_more",
+ "hc_elo",
+ "hdk",
+ "holo_hash",
+ "serde",
+]
+
+[[package]]
 name = "gcollections"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -361,17 +372,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f099785f7595cc4b4553a174ce30dd7589ef93391ff414dbb67f62392b9e0ce1"
 dependencies = [
  "regex-automata",
-]
-
-[[package]]
-name = "my_zome"
-version = "0.0.1"
-dependencies = [
- "derive_more",
- "hc_elo",
- "hdk",
- "holo_hash",
- "serde",
 ]
 
 [[package]]

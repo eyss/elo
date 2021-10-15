@@ -1,3 +1,5 @@
 target/
 .cargo
 node_modules
+*.dna
+*.happ

@@ -4,6 +4,7 @@ use skill_rating::elo::EloRating;
 
 pub mod handlers;
 pub mod validation;
+pub mod unpublished;
 
 #[hdk_entry(id = "game_result")]
 #[derive(Clone, PartialEq, PartialOrd)]
@@ -23,6 +24,28 @@ impl GameResult {
         } else {
             None
         }
+    }
+
+    pub fn counterparty(&self) -> ExternResult<AgentPubKeyB64> {
+        let agent_info = agent_info()?;
+
+        let agents = self.agents();
+        if AgentPubKey::from(agents.0.clone()).eq(&agent_info.agent_latest_pubkey) {
+            Ok(agents.1.clone())
+        } else if AgentPubKey::from(agents.1).eq(&agent_info.agent_latest_pubkey) {
+            Ok(agents.0.clone())
+        } else {
+            Err(WasmError::Guest(
+                "This GameResult does not have my agent pub key in it".into(),
+            ))
+        }
+    }
+
+    pub fn agents(&self) -> (AgentPubKeyB64, AgentPubKeyB64) {
+        (
+            self.player_a.player_address.clone(),
+            self.player_b.player_address.clone(),
+        )
     }
 }
 

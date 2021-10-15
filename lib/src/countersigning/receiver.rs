@@ -3,10 +3,13 @@ use hdk::prelude::*;
 
 use crate::{
     elo_rating_system::EloRatingSystem,
-    game_result::{handlers::get_last_game_result_for_agents, GameResult, GameResultInfo},
+    game_result::{
+        handlers::{create_countersigned_game_result, get_my_last_game_result},
+        GameResult, GameResultInfo,
+    },
 };
 
-use super::common::{create_game_result, PublishGameResultResponse};
+use super::common::PublishGameResultResponse;
 
 /**
  * Receives the publish game result request, verifies that we don't have any latest game result, and creates the first part of the countersigned entry
@@ -54,7 +57,7 @@ pub fn handle_request_publish_game_result<S: EloRatingSystem>(
 
     let responses = vec![counterparty_preflight_response, my_response.clone()];
 
-    create_game_result(game_result, responses)?;
+    create_countersigned_game_result(game_result, responses)?;
 
     Ok(PublishGameResultResponse::InSession(my_response))
 }
@@ -81,12 +84,7 @@ fn is_request_game_result_hash_outdated(
 
     let my_latest_game_result_hash_from_prefligh_request = my_elo_update.previous_game_result;
 
-    let game_results =
-        get_last_game_result_for_agents(vec![agent_info.agent_latest_pubkey.clone().into()])?;
-
-    let my_actual_latest_game_result = game_results
-        .get(&AgentPubKeyB64::from(agent_info.agent_latest_pubkey))
-        .ok_or(WasmError::Guest("Unreachable".into()))?;
+    let my_actual_latest_game_result = get_my_last_game_result()?;
 
     match (my_latest_game_result_hash_from_prefligh_request, my_actual_latest_game_result) {
         (None, None) => Ok(IsGameResultHashOutdated::No),

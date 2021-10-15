@@ -17,3 +17,19 @@ digraph entries {
   Carol -> {GameResultBobCarol, GameResultAliceCarol}
 }
 ```
+
+## Countersignature flow
+
+```mermaid 
+sequenceDiagram
+
+participant Alice
+participant Bob
+
+Alice->>Bob: request_start_countersigning_session
+Bob-->>Bob: validate_last_game_result_is_not_outdated
+Bob-->>Bob: validate_game
+Bob->>Alice: request_
+
+
+```

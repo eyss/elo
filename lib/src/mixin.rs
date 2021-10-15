@@ -1,9 +1,13 @@
 use hdk::prelude::holo_hash::*;
 use hdk::prelude::*;
 
-use crate::{send_publish_game_result_request, AttemptPublishGameResultOutcome, EloRatingSystem};
+use crate::{
+    countersigning::sender::try_create_countersigned_game_result,
+    game_result::handlers::{build_new_game_result, create_unilateral_game_result_and_flag},
+    EloRatingSystem,
+};
 
-pub fn init() -> ExternResult<()> {
+pub fn init_elo() -> ExternResult<()> {
     // TODO: restrict to only the agents with which we are playing
     // grant unrestricted access to accept_cap_claim so other agents can send us claims
     let mut functions: GrantedFunctions = BTreeSet::new();
@@ -27,12 +31,30 @@ pub fn attempt_create_countersigned_game_result<S: EloRatingSystem>(
     game_info: S::GameInfo,
     opponent_address: AgentPubKeyB64,
     my_score: f32,
-) -> ExternResult<AttemptPublishGameResultOutcome> {
+) -> ExternResult<()> {
     let bytes: SerializedBytes = game_info.try_into().or(Err(WasmError::Guest(String::from(
         "Error converting game info into SerializedBytes",
     ))))?;
 
-    send_publish_game_result_request::<S>(bytes, opponent_address, my_score)
+    try_create_countersigned_game_result::<S>(bytes, opponent_address, my_score)
+}
+
+/**
+ * Build a new GameResult for the finished game, and call_remote to the opponent with a countersigning request
+ */
+pub fn create_unilateral_game_result<S: EloRatingSystem>(
+    game_info: S::GameInfo,
+    opponent_address: AgentPubKeyB64,
+    my_score: f32,
+) -> ExternResult<()> {
+    let bytes: SerializedBytes = game_info.try_into().or(Err(WasmError::Guest(String::from(
+        "Error converting game info into SerializedBytes",
+    ))))?;
+
+    let new_game_result = build_new_game_result::<S>(bytes, &opponent_address, my_score)?;
+    create_unilateral_game_result_and_flag(new_game_result)?;
+
+    Ok(())
 }
 
 #[macro_export]
@@ -55,7 +77,8 @@ macro_rules! mixin_elo {
         /**
          * Receives a request to publish a countersigned GameResult
          */
-        pub fn request_publish_game_result<V>(
+        #[hdk_extern]
+        pub fn request_publish_game_result(
             counterparty_preflight_response: PreflightResponse,
         ) -> ExternResult<$crate::PublishGameResultResponse> {
             $crate::handle_request_publish_game_result::<$elo_rating_system>(
@@ -80,7 +103,7 @@ macro_rules! mixin_elo {
         pub fn scheduled_try_resolve_unpublished_game_results(
             _: Option<Schedule>,
         ) -> ExternResult<Option<Schedule>> {
-            $crate::scheduled_try_resolve_unpublished_game_results::<$elo_rating_system>()?;
+            $crate::try_resolve_unpublished_game_results::<$elo_rating_system>()?;
             Ok(Some(Schedule::Persisted(format!(
                 "0/{} * * * *",
                 <$elo_rating_system>::unpublished_games_retry_interval_in_seconds()
