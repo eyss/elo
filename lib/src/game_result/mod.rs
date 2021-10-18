@@ -26,7 +26,7 @@ impl GameResult {
         }
     }
 
-    pub fn counterparty(&self) -> ExternResult<AgentPubKeyB64> {
+    pub fn opponent(&self) -> ExternResult<AgentPubKeyB64> {
         let agent_info = agent_info()?;
 
         let agents = self.agents();

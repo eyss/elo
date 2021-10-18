@@ -6,18 +6,16 @@ use crate::{
     countersigning::common::build_game_result_preflight,
     elo_rating_system::EloRatingSystem,
     game_result::{
-        handlers::{
-            build_new_game_result, build_new_game_result_with_new_opponent_game_result,
-            create_countersigned_game_result, element_to_game_result,
-        },
+        handlers::{build_new_game_result, create_countersigned_game_result},
         GameResult,
     },
 };
 
 #[derive(Serialize, Debug, Deserialize)]
-pub enum AttemptPublishGameResultOutcome {
-    Published,
-    Scheduled,
+#[serde(tag = "type")]
+pub enum CreateGameResultOutcome {
+    Published { entry_hash: EntryHashB64 },
+    OutdatedLastGameResult,
 }
 
 /**
@@ -27,7 +25,7 @@ pub fn try_create_countersigned_game_result<S: EloRatingSystem>(
     game_info: SerializedBytes,
     opponent_address: AgentPubKeyB64,
     my_score: f32,
-) -> ExternResult<()> {
+) -> ExternResult<CreateGameResultOutcome> {
     let new_game_result = build_new_game_result::<S>(game_info, &opponent_address, my_score)?;
 
     send_publish_game_result_request::<S>(new_game_result)
@@ -35,7 +33,7 @@ pub fn try_create_countersigned_game_result<S: EloRatingSystem>(
 
 pub fn send_publish_game_result_request<S: EloRatingSystem>(
     new_game_result: GameResult,
-) -> ExternResult<()> {
+) -> ExternResult<CreateGameResultOutcome> {
     let preflight_request = build_game_result_preflight(&new_game_result)?;
 
     let my_response = match accept_countersigning_preflight_request(preflight_request)? {
@@ -45,7 +43,7 @@ pub fn send_publish_game_result_request<S: EloRatingSystem>(
         )),
     }?;
 
-    let opponent_address = new_game_result.counterparty()?;
+    let opponent_address = new_game_result.opponent()?;
 
     let call_remote_result = call_remote(
         AgentPubKey::from(opponent_address.clone()),
@@ -60,52 +58,21 @@ pub fn send_publish_game_result_request<S: EloRatingSystem>(
             let response: PublishGameResultResponse = response.decode()?;
             match response {
                 PublishGameResultResponse::InSession(counterparty_preflight_response) => {
-                    create_countersigned_game_result(
+                    let entry_hash = create_countersigned_game_result(
                         new_game_result.clone(),
                         vec![my_response, counterparty_preflight_response],
                     )?;
 
-                    Ok(())
+                    Ok(CreateGameResultOutcome::Published { entry_hash })
                 }
                 PublishGameResultResponse::OutdatedLastGameResult {
-                    latest_game_result_hash,
-                } => handle_outdated_last_game_result::<S>(
-                    new_game_result.game_info,
-                    opponent_address,
-                    new_game_result.score_player_a,
-                    latest_game_result_hash,
-                ),
+                    latest_game_result_hash: _,
+                } => Ok(CreateGameResultOutcome::OutdatedLastGameResult),
             }
         }
-        _ => Err(WasmError::Guest(
-            "There was an error calling the opponent's request_publish_game_result".into(),
-        )),
-    }
-}
-
-fn handle_outdated_last_game_result<S: EloRatingSystem>(
-    game_info: SerializedBytes,
-    opponent_address: AgentPubKeyB64,
-    my_score: f32,
-    latest_game_result_hash: HeaderHashB64,
-) -> ExternResult<()> {
-    // Retry, and schedule if it fails
-    if let Some(element) = get(
-        HeaderHash::from(latest_game_result_hash),
-        GetOptions::default(),
-    )? {
-        let game_result = element_to_game_result(element)?;
-
-        let new_game_result = build_new_game_result_with_new_opponent_game_result::<S>(
-            game_info,
-            &opponent_address,
-            my_score,
-            Some(game_result),
-        )?;
-        send_publish_game_result_request::<S>(new_game_result)
-    } else {
-        Err(WasmError::Guest(
-            "Cannot get latest game published for the counterparty".into(),
-        ))
+        _ => Err(WasmError::Guest(format!(
+            "There was an error calling the opponent's request_publish_game_result: {:?}",
+            call_remote_result
+        ))),
     }
 }

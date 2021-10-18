@@ -29,65 +29,79 @@ export default (orchestrator: Orchestrator<any>) =>
     const aliceKey = serializeHash(alice.cellId[1]);
     const bobKey = serializeHash(bob.cellId[1]);
 
-    await alice.call("elo", "publish_result", [bobKey, 1.0]);
+    await sleep(1000);
+    let { entry_hash } = await alice.call("elo", "publish_result", [
+      bobKey,
+      1.0,
+    ]);
+    await alice.call("elo", "link_my_game_results", [entry_hash]);
 
-    await sleep(5000);
+    let outcome = await bob.call("elo", "publish_result", [aliceKey, 0.0]);
+    t.equal(outcome.type, "OutdatedLastGameResult");
+
+    await sleep(500);
 
     let gameResults = await bob.call("elo", "get_game_results_for_agents", [
       aliceKey,
       bobKey,
     ]);
-    
+
     let aliceGameResult = gameResults[aliceKey][0];
-    let bobGameResult = gameResults[aliceKey][0];
+    let bobGameResult = gameResults[bobKey][0];
     t.deepEqual(aliceGameResult[1].player_a, {
       player_address: aliceKey,
-      current_elo: 1032,
+      current_elo: 1016,
       previous_game_result: null,
     });
     t.deepEqual(aliceGameResult[1].player_b, {
       player_address: bobKey,
-      current_elo: 968,
+      current_elo: 984,
       previous_game_result: null,
     });
-    t.equal(aliceGameResult.score_a, 1.0);
+    t.equal(aliceGameResult[1].score_player_a, 1);
     t.deepEqual(aliceGameResult[1], bobGameResult[1]);
 
     let elos = await bob.call("elo", "get_elo_rating_for_agents", [
       aliceKey,
       bobKey,
     ]);
-    t.deepEqual(elos, { [aliceKey]: 1032, [bobKey]: 968 });
+    t.deepEqual(elos, { [aliceKey]: 1016, [bobKey]: 984 });
 
-    let previousAliceGameResultHash = bobGameResult[0];
-    let previousBobGameResultHash = bobGameResult[0];
+    let previousAliceGameResultHash = serializeHash(aliceGameResult[0].hash);
+    let previousBobGameResultHash = serializeHash(bobGameResult[0].hash);
 
-    await bob.call("elo", "publish_result", [aliceKey, 0.0]);
+    await sleep(1000);
 
-    await sleep(2000);
+    outcome = await bob.call("elo", "publish_result", [aliceKey, 0.0]);
+    t.equal(outcome.type, "Published");
+    entry_hash = outcome.entry_hash;
+    await bob.call("elo", "link_my_game_results", [entry_hash]);
+
+    await sleep(500);
 
     gameResults = await bob.call("elo", "get_game_results_for_agents", [
       aliceKey,
       bobKey,
     ]);
-    aliceGameResult = gameResults[aliceKey][0];
-    bobGameResult = gameResults[aliceKey][0];
-    t.deepEqual(aliceGameResult.player_a, {
+    aliceGameResult = gameResults[aliceKey][1];
+    bobGameResult = gameResults[bobKey][1];
+    t.deepEqual(aliceGameResult[1].player_b, {
       player_address: aliceKey,
-      current_elo: 1032,
+      current_elo: 1030,
       previous_game_result: previousAliceGameResultHash,
     });
-    t.deepEqual(aliceGameResult.player_b, {
+    t.deepEqual(aliceGameResult[1].player_a, {
       player_address: bobKey,
-      current_elo: 968,
+      current_elo: 970,
       previous_game_result: previousBobGameResultHash,
     });
-    t.equal(aliceGameResult.score_a, 1.0);
+    t.equal(aliceGameResult[1].score_player_a, 0);
     t.deepEqual(aliceGameResult[1], bobGameResult[1]);
 
     elos = await bob.call("elo", "get_elo_rating_for_agents", [
       aliceKey,
       bobKey,
     ]);
-    t.deepEqual(elos, { [aliceKey]: 1032, [bobKey]: 968 });
+    t.equal(elos[aliceKey], 1030);
+    t.equal(elos[bobKey], 970);
   });

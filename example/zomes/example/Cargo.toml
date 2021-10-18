@@ -11,6 +11,6 @@ name = "example_elo"
 derive_more = "0"
 serde = "1"
 
-hc_elo = {path = "../../../lib"}
+hc_mixin_elo = {path = "../../../lib"}
 hdk = "0.0.110"
 holo_hash = {version = "0.0.9", features = ["encoding"]}

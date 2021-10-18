@@ -4,13 +4,10 @@ use hdk::prelude::*;
 use crate::{
     countersigning::sender::try_create_countersigned_game_result,
     game_result::{
-        handlers::{
-            build_new_game_result, create_unilateral_game_result_and_flag, element_to_game_result,
-            game_results_tag,
-        },
+        handlers::{build_new_game_result, create_unilateral_game_result_and_flag},
         GameResult,
     },
-    EloRatingSystem,
+    CreateGameResultOutcome, EloRatingSystem,
 };
 
 pub fn init_elo() -> ExternResult<()> {
@@ -41,27 +38,19 @@ pub fn post_commit_elo(header_hashes: Vec<HeaderHash>) -> ExternResult<()> {
         .filter(|el| header_hashes.contains(el.header_address()))
         .collect();
 
-    let newly_created_game_results = newly_created_game_results_elements
+    let new_entry_hashes: Vec<EntryHash> = newly_created_game_results_elements
         .into_iter()
-        .map(|el| element_to_game_result(el))
-        .collect::<ExternResult<Vec<(HeaderHashed, GameResult)>>>()?;
+        .filter_map(|el| el.header().entry_hash().map(|h| h.clone()))
+        .map(|e| e.clone())
+        .collect();
 
-    for (_, new_game_result) in newly_created_game_results {
-        let opponent = new_game_result.counterparty()?;
-
-        let new_game_result_hash = hash_entry(new_game_result)?;
-        create_link(
-            AgentPubKey::from(opponent).into(),
-            new_game_result_hash.clone(),
-            game_results_tag(),
-        )?;
-
-        create_link(
-            agent_info()?.agent_latest_pubkey.into(),
-            new_game_result_hash.clone(),
-            game_results_tag(),
-        )?;
-    }
+    call(
+        None,
+        zome_info()?.zome_name,
+        "link_my_game_results".into(),
+        None,
+        new_entry_hashes,
+    )?;
 
     Ok(())
 }
@@ -73,7 +62,7 @@ pub fn attempt_create_countersigned_game_result<S: EloRatingSystem>(
     game_info: S::GameInfo,
     opponent_address: AgentPubKeyB64,
     my_score: f32,
-) -> ExternResult<()> {
+) -> ExternResult<CreateGameResultOutcome> {
     let bytes: SerializedBytes = game_info.try_into().or(Err(WasmError::Guest(String::from(
         "Error converting game info into SerializedBytes",
     ))))?;
@@ -136,6 +125,38 @@ macro_rules! mixin_elo {
             agent_pub_keys: Vec<AgentPubKeyB64>,
         ) -> ExternResult<BTreeMap<AgentPubKeyB64, Vec<(HeaderHashed, $crate::GameResult)>>> {
             $crate::get_game_results_for_agents(agent_pub_keys)
+        }
+
+        /**
+         * Get the game results for the given agents
+         */
+        #[hdk_extern]
+        pub fn link_my_game_results(game_results_hashes: Vec<EntryHashB64>) -> ExternResult<()> {
+            let my_pub_key = agent_info()?.agent_latest_pubkey;
+
+            for hash_b64 in game_results_hashes {
+                let hash = EntryHash::from(hash_b64);
+                // TODO: remove linking from opponent when postcommit lands
+                let element = get(hash.clone(), GetOptions::default())?
+                    .ok_or(WasmError::Guest("Could not get game result".into()))?;
+
+                let game_result = $crate::element_to_game_result(element)?;
+
+                let opponent = game_result.1.opponent()?;
+
+                create_link(
+                    my_pub_key.clone().into(),
+                    hash.clone(),
+                    $crate::game_results_tag(),
+                )?;
+                create_link(
+                    AgentPubKey::from(opponent.clone()).into(),
+                    hash,
+                    $crate::game_results_tag(),
+                )?;
+            }
+
+            Ok(())
         }
 
         /**

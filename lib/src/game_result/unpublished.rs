@@ -95,7 +95,7 @@ fn rebase_game_result<S: EloRatingSystem>(old_game_result: &mut GameResult) -> E
     let maybe_my_last_game_result = get_my_last_game_result()?;
 
     // Get the previous game result for the opponent
-    let opponent = old_game_result.counterparty()?;
+    let opponent = old_game_result.opponent()?;
     let elo_update = old_game_result
         .elo_update_for(&opponent)
         .ok_or(WasmError::Guest(

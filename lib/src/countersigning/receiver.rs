@@ -30,14 +30,12 @@ pub fn handle_request_publish_game_result<S: EloRatingSystem>(
     let validation_output = S::validate_game_result(info, game_result_info)?;
 
     match validation_output {
-        ValidateCallbackResult::Valid => {}
-        _ => {
-            return Err(WasmError::Guest(
-                "The game result that the opponent is trying to make me sign is actually not valid"
-                    .into(),
-            ))
-        }
-    }
+        ValidateCallbackResult::Valid => Ok(()),
+        _ => Err(WasmError::Guest(
+            "The game result that the opponent is trying to make me sign is actually not valid"
+                .into(),
+        )),
+    }?;
 
     if let IsGameResultHashOutdated::Yes {
         latest_game_result_hash,
@@ -90,8 +88,8 @@ fn is_request_game_result_hash_outdated(
         (None, None) => Ok(IsGameResultHashOutdated::No),
         (Some(game_result_hash_from_request), Some(game_result)) => {
             match HeaderHash::from(game_result_hash_from_request).eq(game_result.0.as_hash()) {
-              true=>  Ok(IsGameResultHashOutdated::No),
-               false=> Ok(IsGameResultHashOutdated::Yes {
+                true =>  Ok(IsGameResultHashOutdated::No),
+                false => Ok(IsGameResultHashOutdated::Yes {
                     latest_game_result_hash: game_result.0.as_hash().clone().into()
                 })
             }

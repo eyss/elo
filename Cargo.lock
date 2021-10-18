@@ -122,7 +122,7 @@ name = "example_elo"
 version = "0.0.1"
 dependencies = [
  "derive_more",
- "hc_elo",
+ "hc_mixin_elo",
  "hdk",
  "holo_hash",
  "serde",
@@ -147,7 +147,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ab5ef0d4909ef3724cc8cce6ccc8572c5c817592e9285f5464f8e86f8bd3726e"
 
 [[package]]
-name = "hc_elo"
+name = "hc_mixin_elo"
 version = "0.1.0"
 dependencies = [
  "hdk",

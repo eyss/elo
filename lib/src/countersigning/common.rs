@@ -30,7 +30,7 @@ pub(crate) fn build_game_result_preflight(
 
     let header_base = HeaderBase::Create(CreateBase::new(GameResult::entry_type()?));
 
-    let opponent_address = game_result.counterparty()?;
+    let opponent_address = game_result.opponent()?;
 
     let countersigning_agents = vec![
         (agent_info.agent_latest_pubkey, vec![]),

@@ -1,4 +1,4 @@
-use hc_elo::*;
+use hc_mixin_elo::*;
 use hdk::prelude::holo_hash::*;
 use hdk::prelude::*;
 
@@ -39,14 +39,12 @@ fn post_commit(header_hashes: HeaderHashes) -> ExternResult<PostCommitCallbackRe
 }
 
 #[hdk_extern]
-pub fn publish_result(result: (AgentPubKeyB64, f32)) -> ExternResult<()> {
+pub fn publish_result(result: (AgentPubKeyB64, f32)) -> ExternResult<CreateGameResultOutcome> {
     attempt_create_countersigned_game_result::<ChessEloRating>(
         GameInfo2 {
             opponent: result.0.clone(),
         },
         result.0,
         result.1,
-    )?;
-
-    Ok(())
+    )
 }

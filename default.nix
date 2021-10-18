@@ -28,10 +28,16 @@ let
     };
   };
   nixpkgs = holonix.pkgs;
+
+  t = nixpkgs.writeShellScriptBin "helloWorld" ''
+    echo Hello World
+  '';
 in nixpkgs.mkShell {
   inputsFrom = [ holonix.main ];
   buildInputs = with nixpkgs; [
     binaryen
     nodejs-16_x
+    (t)
   ];
+
 }
