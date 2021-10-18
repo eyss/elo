@@ -7,7 +7,8 @@ export default (orchestrator: Orchestrator<any>) =>
     // Declare two players using the previously specified config, nicknaming them "alice" and "bob"
     // note that the first argument to players is just an array conductor configs that that will
     // be used to spin up the conductor processes which are returned in a matching array.
-    const [alice_player, bob_player]: Player[] = await s.players([
+    const [alice_player, bob_player, carol_player]: Player[] = await s.players([
+      config,
       config,
       config,
     ]);
@@ -16,8 +17,9 @@ export default (orchestrator: Orchestrator<any>) =>
     // array structure as you created in your installation array.
     const [[alice_happ]] = await alice_player.installAgentsHapps(installation);
     const [[bob_happ]] = await bob_player.installAgentsHapps(installation);
+    const [[carol_happ]] = await carol_player.installAgentsHapps(installation);
 
-    await s.shareAllNodes([alice_player, bob_player]);
+    await s.shareAllNodes([alice_player, bob_player, carol_player]);
 
     const alice = alice_happ.cells.find((cell) =>
       cell.cellNick.includes("/example-elo.dna")
@@ -25,9 +27,13 @@ export default (orchestrator: Orchestrator<any>) =>
     const bob = bob_happ.cells.find((cell) =>
       cell.cellNick.includes("/example-elo.dna")
     ) as Cell;
+    const carol = carol_happ.cells.find((cell) =>
+      cell.cellNick.includes("/example-elo.dna")
+    ) as Cell;
 
     const aliceKey = serializeHash(alice.cellId[1]);
     const bobKey = serializeHash(bob.cellId[1]);
+    const carolKey = serializeHash(carol.cellId[1]);
 
     await sleep(1000);
     let { entry_hash } = await alice.call("elo", "publish_result", [
@@ -104,4 +110,40 @@ export default (orchestrator: Orchestrator<any>) =>
     ]);
     t.equal(elos[aliceKey], 1030);
     t.equal(elos[bobKey], 970);
+
+    await carol_player.shutdown();
+
+    try {
+      outcome = await bob.call("elo", "publish_result", [carolKey, 0.0]);
+      t.ok(false);
+    } catch (e) {
+      t.ok(true);
+    }
+
+    await bob.call("elo", "publish_game_result_and_flag", [carolKey, 1.0]);
+
+    elos = await bob.call("elo", "get_elo_rating_for_agents", [
+      carolKey,
+      bobKey,
+    ]);
+    t.equal(elos[carolKey], 1000);
+    t.equal(elos[bobKey], 987);
+    gameResults = await bob.call("elo", "get_game_results_for_agents", [
+      carolKey,
+    ]);
+    t.equal(gameResults[carolKey].length, 0);
+
+    // When carol awakes, they resolve their flagged result
+    await carol_player.startup({});
+
+    // We need to wait for the scheduler to run which is every minute
+    await sleep(70000);
+
+    gameResults = await bob.call("elo", "get_game_results_for_agents", [
+      carolKey,
+    ]);
+    t.equal(gameResults[carolKey].length, 1);
+
+    elos = await bob.call("elo", "get_elo_rating_for_agents", [carolKey]);
+    t.equal(elos[carolKey], 970);
   });

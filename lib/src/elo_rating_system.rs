@@ -14,8 +14,8 @@ pub trait EloRatingSystem {
     }
 
     // How long we are going to wait until retrying to publish the already finished game results
-    fn unpublished_games_retry_interval_in_seconds() -> u32 {
-        60 * 5
+    fn unpublished_games_retry_interval_in_mins() -> u32 {
+        1
     }
 
     fn validate_game_result(

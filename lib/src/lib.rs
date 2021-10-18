@@ -18,6 +18,6 @@ pub use crate::game_result::{
     GameResult, GameResultInfo,
 };
 pub use mixin::{
-    attempt_create_countersigned_game_result, create_unilateral_game_result, init_elo,
+    attempt_create_countersigned_game_result, create_game_result_and_flag, init_elo,
     post_commit_elo,
 };

@@ -49,6 +49,8 @@ fn get_my_unpublished_game_results() -> ExternResult<Vec<UnpublishedGameResult>>
         .map(|l| l.create_link_hash)
         .collect();
 
+    // TODO: Check whether I've already published this game
+
     let game_results = maybe_elements
         .into_iter()
         .zip(create_link_hashes.into_iter())

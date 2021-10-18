@@ -73,7 +73,7 @@ pub fn attempt_create_countersigned_game_result<S: EloRatingSystem>(
 /**
  * Build a new GameResult for the finished game, and call_remote to the opponent with a countersigning request
  */
-pub fn create_unilateral_game_result<S: EloRatingSystem>(
+pub fn create_game_result_and_flag<S: EloRatingSystem>(
     game_info: S::GameInfo,
     opponent_address: AgentPubKeyB64,
     my_score: f32,
@@ -166,11 +166,9 @@ macro_rules! mixin_elo {
         pub fn scheduled_try_resolve_unpublished_game_results(
             _: Option<Schedule>,
         ) -> ExternResult<Option<Schedule>> {
+            warn!("hihi");
             $crate::try_resolve_unpublished_game_results::<$elo_rating_system>()?;
-            Ok(Some(Schedule::Persisted(format!(
-                "0/{} * * * *",
-                <$elo_rating_system>::unpublished_games_retry_interval_in_seconds()
-            ))))
+            Ok(Some(Schedule::Persisted(format!("* * * * *"))))
         }
 
         /**
