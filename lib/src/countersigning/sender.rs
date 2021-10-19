@@ -11,7 +11,7 @@ use crate::{
     },
 };
 
-#[derive(Serialize, Debug, Deserialize)]
+#[derive(Serialize, Debug, Deserialize, Clone)]
 #[serde(tag = "type")]
 pub enum CreateGameResultOutcome {
     Published { entry_hash: EntryHashB64 },
