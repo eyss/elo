@@ -12,5 +12,5 @@ derive_more = "0"
 serde = "1"
 
 hc_mixin_elo = {path = "../../../lib"}
-hdk = "0.0.110"
+hdk = "0.0.109"
 holo_hash = {version = "0.0.9", features = ["encoding"]}

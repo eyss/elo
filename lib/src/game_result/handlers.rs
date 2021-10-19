@@ -27,13 +27,13 @@ pub(crate) fn create_unilateral_game_result_and_flag(
 
     create_link(
         AgentPubKey::from(opponent).into(),
-        game_result_hash,
+        game_result_hash.clone(),
         unpublished_game_tag(),
     )?;
 
     emit_signal(EloSignal::NewGameResult {
         are_links_missing: false,
-        entry_hash: game_result_hash,
+        entry_hash: game_result_hash.into(),
         game_result,
     })?;
 
@@ -62,13 +62,16 @@ pub(crate) fn create_countersigned_game_result(
             ChainTopOrdering::Strict,
         ))
     })?;
+
+    let entry_hash = EntryHashB64::from(game_result_hash);
+
     emit_signal(EloSignal::NewGameResult {
         are_links_missing: true,
-        entry_hash: game_result_hash,
+        entry_hash: entry_hash.clone(),
         game_result,
     })?;
 
-    Ok(game_result_hash.into())
+    Ok(entry_hash)
 }
 
 pub fn get_game_results_for_agents(
