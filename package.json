@@ -4,11 +4,10 @@
   "license": "MIT",
   "author": "guillem.cordoba@gmail.com",
   "version": "0.0.0",
-  "main": "dist/src/index.js",
-  "module": "dist/src/index.js",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
   "exports": {
-    ".": "./dist/src/index.js",
-    "./hc-elo.js": "./dist/src/hc-elo.js"
+    ".": "./dist/index.js"
   },
   "scripts": {
     "analyze": "cem analyze --litelement",
