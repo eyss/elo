@@ -1,6 +1,6 @@
 var _EloStore_gameResults, _EloStore_elos;
 import { __classPrivateFieldGet } from "tslib";
-import { serializeHash } from '@holochain-open-dev/core-types';
+import { serializeHash, } from '@holochain-open-dev/core-types';
 import { derived, writable } from 'svelte/store';
 import { headerTimestamp } from './utils';
 export var ShortResult;
@@ -33,7 +33,7 @@ export class EloStore {
         this.eloService.resolveFlags();
         this.eloService.cellClient.addSignalHandler(signal => {
             if (signal.data.payload.type === 'NewGameResult') {
-                this.handleNewGameResult(signal.data.payload.game_result);
+                this.handleNewGameResult(signal.data.payload.game_result, signal.data.payload.entry_hash, signal.data.payload.are_links_missing);
             }
         });
     }
@@ -66,7 +66,11 @@ export class EloStore {
         const elos = await this.eloService.getEloRatingForAgents(agents);
         __classPrivateFieldGet(this, _EloStore_elos, "f").update(e => ({ ...e, ...elos }));
     }
-    async handleNewGameResult(gameResult) {
+    async handleNewGameResult(gameResult, gameResultHash, areLinksMissing) {
+        // TODO: remove when post_commit lands
+        if (areLinksMissing) {
+            await this.eloService.linkGameResults([gameResultHash]);
+        }
         const players = [
             gameResult.player_a.player_address,
             gameResult.player_b.player_address,

@@ -82,6 +82,24 @@
             },
             {
               "kind": "method",
+              "name": "linkGameResults",
+              "privacy": "public",
+              "return": {
+                "type": {
+                  "text": "Promise<void>"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "entryHashes",
+                  "type": {
+                    "text": "EntryHashB64[]"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "method",
               "name": "callZome",
               "privacy": "private",
               "return": {
@@ -260,6 +278,18 @@
                   "name": "gameResult",
                   "type": {
                     "text": "GameResult"
+                  }
+                },
+                {
+                  "name": "gameResultHash",
+                  "type": {
+                    "text": "EntryHashB64"
+                  }
+                },
+                {
+                  "name": "areLinksMissing",
+                  "type": {
+                    "text": "boolean"
                   }
                 }
               ]
