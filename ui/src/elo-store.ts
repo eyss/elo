@@ -1,4 +1,8 @@
-import { AgentPubKeyB64, serializeHash } from '@holochain-open-dev/core-types';
+import {
+  AgentPubKeyB64,
+  EntryHashB64,
+  serializeHash,
+} from '@holochain-open-dev/core-types';
 import { ProfilesStore } from '@holochain-open-dev/profiles';
 import { HoloHashed } from '@holochain/conductor-api';
 import { derived, writable, Writable } from 'svelte/store';
@@ -58,7 +62,11 @@ export class EloStore {
 
     this.eloService.cellClient.addSignalHandler(signal => {
       if (signal.data.payload.type === 'NewGameResult') {
-        this.handleNewGameResult(signal.data.payload.game_result);
+        this.handleNewGameResult(
+          signal.data.payload.game_result,
+          signal.data.payload.entry_hash,
+          signal.data.payload.are_links_missing
+        );
       }
     });
   }
@@ -97,7 +105,17 @@ export class EloStore {
     this.#elos.update(e => ({ ...e, ...elos }));
   }
 
-  private async handleNewGameResult(gameResult: GameResult) {
+  private async handleNewGameResult(
+    gameResult: GameResult,
+    gameResultHash: EntryHashB64,
+    areLinksMissing: boolean
+  ) {
+    // TODO: remove when post_commit lands
+
+    if (areLinksMissing) {
+      await this.eloService.linkGameResults([gameResultHash]);
+    }
+
     const players = [
       gameResult.player_a.player_address,
       gameResult.player_b.player_address,

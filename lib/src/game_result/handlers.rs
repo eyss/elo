@@ -31,7 +31,11 @@ pub(crate) fn create_unilateral_game_result_and_flag(
         unpublished_game_tag(),
     )?;
 
-    emit_signal(EloSignal::NewGameResult { game_result })?;
+    emit_signal(EloSignal::NewGameResult {
+        are_links_missing: false,
+        entry_hash: game_result_hash,
+        game_result,
+    })?;
 
     Ok(header_hash.into())
 }
@@ -58,7 +62,11 @@ pub(crate) fn create_countersigned_game_result(
             ChainTopOrdering::Strict,
         ))
     })?;
-    emit_signal(EloSignal::NewGameResult { game_result })?;
+    emit_signal(EloSignal::NewGameResult {
+        are_links_missing: true,
+        entry_hash: game_result_hash,
+        game_result,
+    })?;
 
     Ok(game_result_hash.into())
 }

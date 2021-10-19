@@ -84,5 +84,10 @@ impl GameResultInfo {
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(tag = "type")]
 pub enum EloSignal {
-    NewGameResult { game_result: GameResult },
+    NewGameResult {
+        // TODO: remove when post_commit lands
+        are_links_missing: bool,
+        entry_hash: EntryHashB64,
+        game_result: GameResult,
+    },
 }
