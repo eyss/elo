@@ -1,22 +1,18 @@
 import { ScopedElementsMixin } from '@open-wc/scoped-elements';
 import { html, LitElement } from 'lit';
 import { state } from 'lit/decorators.js';
-import {
-  List,
-  ListItem,
-  CircularProgress,
-} from '@scoped-elements/material-web';
+import { List, ListItem } from '@scoped-elements/material-web';
 import { contextProvided } from '@lit-labs/context';
 import {
   profilesStoreContext,
   ProfilesStore,
 } from '@holochain-open-dev/profiles';
-
-import { StoreSubscriber } from 'lit-svelte-stores';
-import { eloStoreContext } from '../context';
-import { EloStore } from '../elo-store';
 import { AgentPubKeyB64 } from '@holochain-open-dev/core-types';
 import { SlSkeleton } from '@scoped-elements/shoelace';
+import { StoreSubscriber } from 'lit-svelte-stores';
+
+import { eloStoreContext } from '../context';
+import { EloStore } from '../elo-store';
 import { sharedStyles } from '../shared-styles';
 
 export class EloRanking extends ScopedElementsMixin(LitElement) {

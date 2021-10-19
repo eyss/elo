@@ -43,7 +43,11 @@ export class EloStore {
     return serializeHash(this.eloService.cellClient.cellId[1]);
   }
 
-  constructor(protected eloService: EloService) {}
+  constructor(protected eloService: EloService) {
+    // TODO: remove when scheduler actually works
+    setInterval(() => this.eloService.resolveFlags(), 5000);
+    this.eloService.resolveFlags();
+  }
 
   /** Helpers for the types */
 

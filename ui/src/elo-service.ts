@@ -19,6 +19,13 @@ export class EloService {
     return this.callZome('get_elo_ratings_for_agents', agents);
   }
 
+  public resolveFlags(): Promise<void> {
+    return this.callZome(
+      'scheduled_try_resolve_unpublished_game_results',
+      null
+    );
+  }
+
   private callZome(fnName: string, payload: any): Promise<any> {
     return this.cellClient.callZome(this.zomeName, fnName, payload);
   }

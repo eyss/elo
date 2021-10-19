@@ -21,7 +21,7 @@ pub(crate) fn create_unilateral_game_result_and_flag(
         game_result_hash.clone(),
         game_results_tag(),
     )?;
-
+    warn!("unilateral {}", opponent);
     create_link(
         AgentPubKey::from(opponent).into(),
         game_result_hash,

@@ -166,7 +166,6 @@ macro_rules! mixin_elo {
         pub fn scheduled_try_resolve_unpublished_game_results(
             _: Option<Schedule>,
         ) -> ExternResult<Option<Schedule>> {
-            warn!("hihi");
             $crate::try_resolve_unpublished_game_results::<$elo_rating_system>()?;
             Ok(Some(Schedule::Persisted(format!("* * * * *"))))
         }

@@ -12,7 +12,7 @@ pub fn unpublished_game_tag() -> LinkTag {
 
 pub fn try_resolve_unpublished_game_results<S: EloRatingSystem>() -> ExternResult<()> {
     let unpublished_game_results = get_my_unpublished_game_results()?;
-
+    warn!("hey {:?}", unpublished_game_results);
     for unpublished_game_result in unpublished_game_results {
         create_game_result_and_resolve_flag::<S>(
             unpublished_game_result.game_result,
@@ -23,7 +23,7 @@ pub fn try_resolve_unpublished_game_results<S: EloRatingSystem>() -> ExternResul
     Ok(())
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 struct UnpublishedGameResult {
     game_result: GameResult,
     flag_link_hash: HeaderHash,
@@ -32,7 +32,9 @@ struct UnpublishedGameResult {
 fn get_my_unpublished_game_results() -> ExternResult<Vec<UnpublishedGameResult>> {
     let my_pub_key = agent_info()?.agent_latest_pubkey;
 
-    let unpublished_links = get_links(my_pub_key.into(), Some(unpublished_game_tag()))?;
+    let unpublished_links = get_links(my_pub_key.clone().into(), Some(unpublished_game_tag()))?;
+
+    warn!("unpublished_links {} {:?}", my_pub_key, unpublished_links);
 
     let get_inputs = unpublished_links
         .clone()

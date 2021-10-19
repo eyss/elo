@@ -136,14 +136,19 @@ export default (orchestrator: Orchestrator<any>) =>
     // When carol awakes, they resolve their flagged result
     await carol_player.startup({});
 
-    // We need to wait for the scheduler to run which is every minute
-    await sleep(70000);
+    await sleep(30000);
 
+    await carol.call(
+      "elo",
+      "scheduled_try_resolve_unpublished_game_results",
+      null
+    );
+    await sleep(500);
     gameResults = await bob.call("elo", "get_game_results_for_agents", [
       carolKey,
     ]);
     t.equal(gameResults[carolKey].length, 1);
 
     elos = await bob.call("elo", "get_elo_rating_for_agents", [carolKey]);
-    t.equal(elos[carolKey], 970);
+    t.equal(elos[carolKey], 983);
   });
