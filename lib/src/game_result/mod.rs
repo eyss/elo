@@ -80,3 +80,9 @@ impl GameResultInfo {
         }
     }
 }
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(tag = "type")]
+pub enum EloSignal {
+    NewGameResult { game_result: GameResult },
+}

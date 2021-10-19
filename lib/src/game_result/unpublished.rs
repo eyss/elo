@@ -4,7 +4,7 @@ use hdk::prelude::holo_hash::*;
 use hdk::prelude::*;
 
 use super::handlers::{element_to_game_result, game_results_tag, get_my_last_game_result};
-use super::EloUpdate;
+use super::{EloSignal, EloUpdate};
 
 pub fn unpublished_game_tag() -> LinkTag {
     LinkTag::new("unpublished_game")
@@ -12,7 +12,7 @@ pub fn unpublished_game_tag() -> LinkTag {
 
 pub fn try_resolve_unpublished_game_results<S: EloRatingSystem>() -> ExternResult<()> {
     let unpublished_game_results = get_my_unpublished_game_results()?;
-    warn!("hey {:?}", unpublished_game_results);
+
     for unpublished_game_result in unpublished_game_results {
         create_game_result_and_resolve_flag::<S>(
             unpublished_game_result.game_result,
@@ -33,8 +33,6 @@ fn get_my_unpublished_game_results() -> ExternResult<Vec<UnpublishedGameResult>>
     let my_pub_key = agent_info()?.agent_latest_pubkey;
 
     let unpublished_links = get_links(my_pub_key.clone().into(), Some(unpublished_game_tag()))?;
-
-    warn!("unpublished_links {} {:?}", my_pub_key, unpublished_links);
 
     let get_inputs = unpublished_links
         .clone()
@@ -83,6 +81,8 @@ pub(crate) fn create_game_result_and_resolve_flag<S: EloRatingSystem>(
     let header_hash = create_entry(game_result.clone())?;
 
     let game_result_hash = hash_entry(game_result.clone())?;
+
+    emit_signal(EloSignal::NewGameResult { game_result })?;
 
     create_link(
         agent_info()?.agent_latest_pubkey.into(),

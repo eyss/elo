@@ -22,16 +22,13 @@ import { GameResult } from '../types';
 import { headerTimestamp } from '../utils';
 import { sharedStyles } from '../shared-styles';
 
-export class ChessGameResultsHistory extends ScopedElementsMixin(LitElement) {
+export class GameResultsHistory extends ScopedElementsMixin(LitElement) {
   @contextProvided({ context: eloStoreContext })
   _eloStore!: EloStore;
 
-  @contextProvided({ context: profilesStoreContext })
-  _profilesStore!: ProfilesStore;
-
   _knownProfiles = new StoreSubscriber(
     this,
-    () => this._profilesStore.knownProfiles
+    () => this._eloStore.profilesStore.knownProfiles
   );
 
   _myGameResults = new StoreSubscriber(
@@ -42,10 +39,11 @@ export class ChessGameResultsHistory extends ScopedElementsMixin(LitElement) {
   async firstUpdated() {
     await this._eloStore.fetchMyGameResults();
 
-    const promises = this._myGameResults.value.map(async r =>
-      this._profilesStore.fetchAgentProfile(this._eloStore.getOpponent(r[1]))
+    const opponentKeys = this._myGameResults.value.map(gameResult =>
+      this._eloStore.getOpponent(gameResult[1])
     );
-    await Promise.all(promises);
+
+    await this._eloStore.profilesStore.fetchAgentsProfiles(opponentKeys);
   }
 
   getIcon(result: GameResult) {
@@ -80,7 +78,7 @@ export class ChessGameResultsHistory extends ScopedElementsMixin(LitElement) {
   renderResults() {
     if (this._myGameResults.value.length === 0)
       return html`<div class="column center-content" style="flex: 1;">
-        <span class="placeholder">There are no games in your history yet</span>
+        <span class="placeholder" style="padding: 24px;">There are no games in your history yet</span>
       </div>`;
 
     return html`<div class="flex-scrollable-parent">

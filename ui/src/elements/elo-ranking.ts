@@ -1,14 +1,15 @@
 import { ScopedElementsMixin } from '@open-wc/scoped-elements';
 import { html, LitElement } from 'lit';
 import { state } from 'lit/decorators.js';
-import { List, ListItem } from '@scoped-elements/material-web';
+import { Card, List, ListItem } from '@scoped-elements/material-web';
 import { contextProvided } from '@lit-labs/context';
 import {
   profilesStoreContext,
   ProfilesStore,
+  AgentAvatar,
 } from '@holochain-open-dev/profiles';
 import { AgentPubKeyB64 } from '@holochain-open-dev/core-types';
-import { SlSkeleton } from '@scoped-elements/shoelace';
+import { SlSkeleton, lightTheme } from '@scoped-elements/shoelace';
 import { StoreSubscriber } from 'lit-svelte-stores';
 
 import { eloStoreContext } from '../context';
@@ -19,22 +20,19 @@ export class EloRanking extends ScopedElementsMixin(LitElement) {
   @contextProvided({ context: eloStoreContext })
   _eloStore!: EloStore;
 
-  @contextProvided({ context: profilesStoreContext })
-  _profilesStore!: ProfilesStore;
-
   @state()
   _loading = true;
 
   _allProfiles = new StoreSubscriber(
     this,
-    () => this._profilesStore.knownProfiles
+    () => this._eloStore.profilesStore.knownProfiles
   );
   _eloRanking = new StoreSubscriber(this, () => this._eloStore.eloRanking);
 
   async firstUpdated() {
-    await this._profilesStore.fetchAllProfiles();
+    await this._eloStore.profilesStore.fetchAllProfiles();
     const allPubKeys = Object.keys(this._allProfiles.value);
-    await this._eloStore.fetchElosForAgents(allPubKeys);
+    await this._eloStore.fetchEloForAgents(allPubKeys);
 
     this._loading = false;
   }
@@ -51,21 +49,26 @@ export class EloRanking extends ScopedElementsMixin(LitElement) {
       >
         <agent-avatar slot="graphic" .agentPubKey=${agentPubKey}>
         </agent-avatar>
-        <span style="margin-left: 8px;"
-          >${profile ? profile.nickname : agentPubKey}</span
-        >
-        <span slot="meta">${elo}</span>
+        <span>${profile ? profile.nickname : agentPubKey}</span>
+        <span slot="meta" style="color: black; font-size: 16px;">${elo}</span>
       </mwc-list-item>
     `;
   }
 
   renderSkeleton() {
-    return html` <div class="column">
+    return html` <div class="column" style="margin-top: 8px; margin-left: 4px;">
       ${[0, 1, 2].map(
         _ => html`
-          <div class="row">
-            <sl-skeleton effect="sheen"></sl-skeleton>
-            <sl-skeleton effect="sheen"></sl-skeleton>
+          <div class="row" style="align-items: center; margin: 8px;">
+            <sl-skeleton
+              effect="sheen"
+              style="width: 32px; height: 32px; margin-right: 16px;"
+            ></sl-skeleton>
+
+            <sl-skeleton
+              effect="sheen"
+              style="width: 200px; height: 16px;"
+            ></sl-skeleton>
           </div>
         `
       )}
@@ -73,26 +76,35 @@ export class EloRanking extends ScopedElementsMixin(LitElement) {
   }
 
   render() {
-    if (this._loading) return this.renderSkeleton();
-
     return html`
-      <mwc-list>
-        ${this._eloRanking.value.map(e =>
-          this.renderPlayer(e.agentPubKey, e.elo)
-        )}
-      </mwc-list>
+      <mwc-card style="flex: 1; min-width: 270px;">
+        <div class="column" style="margin: 16px; flex: 1;">
+          <span class="title">ELO Ranking</span>
+          ${this._loading
+            ? this.renderSkeleton()
+            : html`
+                <mwc-list noninteractive>
+                  ${this._eloRanking.value.map(e =>
+                    this.renderPlayer(e.agentPubKey, e.elo)
+                  )}
+                </mwc-list>
+              `}
+        </div>
+      </mwc-card>
     `;
   }
 
   static get scopedElements() {
     return {
       'sl-skeleton': SlSkeleton,
+      'agent-avatar': AgentAvatar,
+      'mwc-card': Card,
       'mwc-list': List,
       'mwc-list-item': ListItem,
     };
   }
 
   static get styles() {
-    return sharedStyles;
+    return [sharedStyles, lightTheme];
   }
 }

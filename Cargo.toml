@@ -1,6 +1,7 @@
 [workspace]
 members = [
   "example/zomes/example",
+  "example/zomes/profiles",
   "lib",
 ]
 

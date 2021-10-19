@@ -1,4 +1,5 @@
 import { AgentPubKeyB64, serializeHash } from '@holochain-open-dev/core-types';
+import { ProfilesStore } from '@holochain-open-dev/profiles';
 import { HoloHashed } from '@holochain/conductor-api';
 import { derived, writable, Readable, Writable } from 'svelte/store';
 import { EloService } from './elo-service';
@@ -30,23 +31,34 @@ export class EloStore {
 
   public myElo = derived(this.#elos, i => i[this.myAgentPubKey]);
 
-  public myGameResults = derived(this.#gameResults, i =>
-    i[this.myAgentPubKey].sort(
+  public myGameResults = derived(this.#gameResults, i => {
+    const myResults = i[this.myAgentPubKey];
+    if (!myResults) return [];
+    return myResults.sort(
       (
         gr1,
         gr2 // TODO: fix this
       ) => headerTimestamp(gr2[0]) - headerTimestamp(gr1[0])
-    )
-  );
+    );
+  });
 
   public get myAgentPubKey() {
     return serializeHash(this.eloService.cellClient.cellId[1]);
   }
 
-  constructor(protected eloService: EloService) {
+  constructor(
+    protected eloService: EloService,
+    public profilesStore: ProfilesStore
+  ) {
     // TODO: remove when scheduler actually works
     setInterval(() => this.eloService.resolveFlags(), 5000);
     this.eloService.resolveFlags();
+
+    this.eloService.cellClient.addSignalHandler(signal => {
+      if (signal.data.payload.type === 'NewGameResult') {
+        this.handleNewGameResult(signal.data.payload.game_result);
+      }
+    });
   }
 
   /** Helpers for the types */
@@ -65,11 +77,11 @@ export class EloStore {
   /** Backend actions */
 
   async fetchMyGameResults() {
-    return this.fetchElosForAgents([this.myAgentPubKey]);
+    return this.fetchGameResultsForAgents([this.myAgentPubKey]);
   }
 
   async fetchMyElo() {
-    return this.fetchGameResultsForAgents([this.myAgentPubKey]);
+    return this.fetchEloForAgents([this.myAgentPubKey]);
   }
 
   async fetchGameResultsForAgents(agents: AgentPubKeyB64[]): Promise<void> {
@@ -78,8 +90,22 @@ export class EloStore {
     this.#gameResults.update(r => ({ ...r, ...gameResults }));
   }
 
-  async fetchElosForAgents(agents: AgentPubKeyB64[]): Promise<void> {
-    const elos = await this.eloService.getEloRatingsForAgents(agents);
+  async fetchEloForAgents(agents: AgentPubKeyB64[]): Promise<void> {
+    const elos = await this.eloService.getEloRatingForAgents(agents);
     this.#elos.update(e => ({ ...e, ...elos }));
+  }
+
+  private async handleNewGameResult(gameResult: GameResult) {
+    const players = [
+      gameResult.player_a.player_address,
+      gameResult.player_b.player_address,
+    ];
+
+    const promises = [
+      this.fetchGameResultsForAgents(players),
+      this.fetchEloForAgents(players),
+      this.profilesStore.fetchAgentsProfiles(players),
+    ];
+    await Promise.all(promises);
   }
 }

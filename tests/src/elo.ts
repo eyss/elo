@@ -138,6 +138,7 @@ export default (orchestrator: Orchestrator<any>) =>
 
     await sleep(30000);
 
+    // TODO: fix error handling
     await carol.call(
       "elo",
       "scheduled_try_resolve_unpublished_game_results",

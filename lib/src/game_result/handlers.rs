@@ -3,7 +3,10 @@ use std::collections::BTreeMap;
 use hdk::prelude::holo_hash::*;
 use hdk::prelude::*;
 
-use crate::{elo_rating::elo_rating_from_last_game_result, elo_rating_system::EloRatingSystem};
+use crate::{
+    elo_rating::elo_rating_from_last_game_result, elo_rating_system::EloRatingSystem,
+    game_result::EloSignal,
+};
 
 use super::{unpublished::unpublished_game_tag, EloUpdate, GameResult};
 
@@ -14,19 +17,21 @@ pub(crate) fn create_unilateral_game_result_and_flag(
 
     let opponent = game_result.opponent()?;
 
-    let game_result_hash = hash_entry(game_result)?;
+    let game_result_hash = hash_entry(game_result.clone())?;
 
     create_link(
         agent_info()?.agent_latest_pubkey.into(),
         game_result_hash.clone(),
         game_results_tag(),
     )?;
-    warn!("unilateral {}", opponent);
+
     create_link(
         AgentPubKey::from(opponent).into(),
         game_result_hash,
         unpublished_game_tag(),
     )?;
+
+    emit_signal(EloSignal::NewGameResult { game_result })?;
 
     Ok(header_hash.into())
 }
@@ -53,6 +58,7 @@ pub(crate) fn create_countersigned_game_result(
             ChainTopOrdering::Strict,
         ))
     })?;
+    emit_signal(EloSignal::NewGameResult { game_result })?;
 
     Ok(game_result_hash.into())
 }

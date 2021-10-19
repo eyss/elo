@@ -10,13 +10,13 @@ export class EloService {
   public getGameResultsForAgents(agents: AgentPubKeyB64[]): Promise<{
     [key: AgentPubKeyB64]: Array<[HoloHashed<any>, GameResult]>;
   }> {
-    return this.callZome('get_elo_ratings_for_agents', agents);
+    return this.callZome('get_game_results_for_agents', agents);
   }
 
-  public getEloRatingsForAgents(agents: AgentPubKeyB64[]): Promise<{
+  public getEloRatingForAgents(agents: AgentPubKeyB64[]): Promise<{
     [key: AgentPubKeyB64]: number;
   }> {
-    return this.callZome('get_elo_ratings_for_agents', agents);
+    return this.callZome('get_elo_rating_for_agents', agents);
   }
 
   public resolveFlags(): Promise<void> {
