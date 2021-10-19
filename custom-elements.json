@@ -40,7 +40,7 @@
               "privacy": "public",
               "return": {
                 "type": {
-                  "text": "Promise<{\n    [key: AgentPubKeyB64]: Array<[HoloHashed<any>, GameResult]>;\n  }>"
+                  "text": "Promise<{\n    [key: string]: Array<[HoloHashed<any>, GameResult]>;\n  }>"
                 }
               },
               "parameters": [
@@ -58,7 +58,7 @@
               "privacy": "public",
               "return": {
                 "type": {
-                  "text": "Promise<{\n    [key: AgentPubKeyB64]: number;\n  }>"
+                  "text": "Promise<{\n    [key: string]: number;\n  }>"
                 }
               },
               "parameters": [
@@ -147,18 +147,18 @@
           "members": [
             {
               "kind": "field",
-              "name": "#gameResults",
+              "name": "#gameResultsByAgent",
               "privacy": "private",
               "type": {
-                "text": "Writable<{\n    [key: AgentPubKeyB64]: Array<[HoloHashed<any>, GameResult]>;\n  }>"
+                "text": "Writable<{\n    [key: string]: Array<[HoloHashed<any>, GameResult]>;\n  }>"
               }
             },
             {
               "kind": "field",
-              "name": "#elos",
+              "name": "#elosByAgent",
               "privacy": "private",
               "type": {
-                "text": "Writable<{\n    [key: AgentPubKeyB64]: number;\n  }>"
+                "text": "Writable<{\n    [key: string]: number;\n  }>"
               }
             },
             {

@@ -7,10 +7,10 @@ export declare class EloService {
     protected zomeName: string;
     constructor(cellClient: CellClient, zomeName: string);
     getGameResultsForAgents(agents: AgentPubKeyB64[]): Promise<{
-        [key: AgentPubKeyB64]: Array<[HoloHashed<any>, GameResult]>;
+        [key: string]: Array<[HoloHashed<any>, GameResult]>;
     }>;
     getEloRatingForAgents(agents: AgentPubKeyB64[]): Promise<{
-        [key: AgentPubKeyB64]: number;
+        [key: string]: number;
     }>;
     resolveFlags(): Promise<void>;
     linkGameResults(entryHashes: EntryHashB64[]): Promise<void>;

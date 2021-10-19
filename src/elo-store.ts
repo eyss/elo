@@ -17,27 +17,27 @@ export enum ShortResult {
 }
 
 export class EloStore {
-  #gameResults: Writable<{
-    [key: AgentPubKeyB64]: Array<[HoloHashed<any>, GameResult]>;
+  #gameResultsByAgent: Writable<{
+    [key: string]: Array<[HoloHashed<any>, GameResult]>;
   }> = writable({});
 
-  #elos: Writable<{
-    [key: AgentPubKeyB64]: number;
+  #elosByAgent: Writable<{
+    [key: string]: number;
   }> = writable({});
 
-  public elos = derived(this.#elos, i => i);
+  public elos = derived(this.#elosByAgent, i => i);
 
-  public eloRanking = derived(this.#elos, i =>
+  public eloRanking = derived(this.#elosByAgent, i =>
     Object.entries(i)
       .map(([agentPubKey, elo]) => ({ agentPubKey, elo }))
       .sort((a, b) => b.elo - a.elo)
   );
 
-  public gameResults = derived(this.#gameResults, i => i);
+  public gameResults = derived(this.#gameResultsByAgent, i => i);
 
-  public myElo = derived(this.#elos, i => i[this.myAgentPubKey]);
+  public myElo = derived(this.#elosByAgent, i => i[this.myAgentPubKey]);
 
-  public myGameResults = derived(this.#gameResults, i => {
+  public myGameResults = derived(this.#gameResultsByAgent, i => {
     const myResults = i[this.myAgentPubKey];
     if (!myResults) return [];
     return myResults.sort(
@@ -97,12 +97,12 @@ export class EloStore {
   async fetchGameResultsForAgents(agents: AgentPubKeyB64[]): Promise<void> {
     const gameResults = await this.eloService.getGameResultsForAgents(agents);
 
-    this.#gameResults.update(r => ({ ...r, ...gameResults }));
+    this.#gameResultsByAgent.update(r => ({ ...r, ...gameResults }));
   }
 
   async fetchEloForAgents(agents: AgentPubKeyB64[]): Promise<void> {
     const elos = await this.eloService.getEloRatingForAgents(agents);
-    this.#elos.update(e => ({ ...e, ...elos }));
+    this.#elosByAgent.update(e => ({ ...e, ...elos }));
   }
 
   private async handleNewGameResult(

@@ -8,13 +8,13 @@ export class EloService {
   constructor(public cellClient: CellClient, protected zomeName: string) {}
 
   public getGameResultsForAgents(agents: AgentPubKeyB64[]): Promise<{
-    [key: AgentPubKeyB64]: Array<[HoloHashed<any>, GameResult]>;
+    [key: string]: Array<[HoloHashed<any>, GameResult]>;
   }> {
     return this.callZome('get_game_results_for_agents', agents);
   }
 
   public getEloRatingForAgents(agents: AgentPubKeyB64[]): Promise<{
-    [key: AgentPubKeyB64]: number;
+    [key: string]: number;
   }> {
     return this.callZome('get_elo_rating_for_agents', agents);
   }

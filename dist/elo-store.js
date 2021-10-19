@@ -1,4 +1,4 @@
-var _EloStore_gameResults, _EloStore_elos;
+var _EloStore_gameResultsByAgent, _EloStore_elosByAgent;
 import { __classPrivateFieldGet } from "tslib";
 import { serializeHash, } from '@holochain-open-dev/core-types';
 import { derived, writable } from 'svelte/store';
@@ -13,15 +13,15 @@ export class EloStore {
     constructor(eloService, profilesStore) {
         this.eloService = eloService;
         this.profilesStore = profilesStore;
-        _EloStore_gameResults.set(this, writable({}));
-        _EloStore_elos.set(this, writable({}));
-        this.elos = derived(__classPrivateFieldGet(this, _EloStore_elos, "f"), i => i);
-        this.eloRanking = derived(__classPrivateFieldGet(this, _EloStore_elos, "f"), i => Object.entries(i)
+        _EloStore_gameResultsByAgent.set(this, writable({}));
+        _EloStore_elosByAgent.set(this, writable({}));
+        this.elos = derived(__classPrivateFieldGet(this, _EloStore_elosByAgent, "f"), i => i);
+        this.eloRanking = derived(__classPrivateFieldGet(this, _EloStore_elosByAgent, "f"), i => Object.entries(i)
             .map(([agentPubKey, elo]) => ({ agentPubKey, elo }))
             .sort((a, b) => b.elo - a.elo));
-        this.gameResults = derived(__classPrivateFieldGet(this, _EloStore_gameResults, "f"), i => i);
-        this.myElo = derived(__classPrivateFieldGet(this, _EloStore_elos, "f"), i => i[this.myAgentPubKey]);
-        this.myGameResults = derived(__classPrivateFieldGet(this, _EloStore_gameResults, "f"), i => {
+        this.gameResults = derived(__classPrivateFieldGet(this, _EloStore_gameResultsByAgent, "f"), i => i);
+        this.myElo = derived(__classPrivateFieldGet(this, _EloStore_elosByAgent, "f"), i => i[this.myAgentPubKey]);
+        this.myGameResults = derived(__classPrivateFieldGet(this, _EloStore_gameResultsByAgent, "f"), i => {
             const myResults = i[this.myAgentPubKey];
             if (!myResults)
                 return [];
@@ -60,11 +60,11 @@ export class EloStore {
     }
     async fetchGameResultsForAgents(agents) {
         const gameResults = await this.eloService.getGameResultsForAgents(agents);
-        __classPrivateFieldGet(this, _EloStore_gameResults, "f").update(r => ({ ...r, ...gameResults }));
+        __classPrivateFieldGet(this, _EloStore_gameResultsByAgent, "f").update(r => ({ ...r, ...gameResults }));
     }
     async fetchEloForAgents(agents) {
         const elos = await this.eloService.getEloRatingForAgents(agents);
-        __classPrivateFieldGet(this, _EloStore_elos, "f").update(e => ({ ...e, ...elos }));
+        __classPrivateFieldGet(this, _EloStore_elosByAgent, "f").update(e => ({ ...e, ...elos }));
     }
     async handleNewGameResult(gameResult, gameResultHash, areLinksMissing) {
         // TODO: remove when post_commit lands
@@ -83,5 +83,5 @@ export class EloStore {
         await Promise.all(promises);
     }
 }
-_EloStore_gameResults = new WeakMap(), _EloStore_elos = new WeakMap();
+_EloStore_gameResultsByAgent = new WeakMap(), _EloStore_elosByAgent = new WeakMap();
 //# sourceMappingURL=elo-store.js.map
