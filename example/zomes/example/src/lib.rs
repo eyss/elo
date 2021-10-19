@@ -50,7 +50,7 @@ pub fn publish_result(result: (AgentPubKeyB64, f32)) -> ExternResult<CreateGameR
 }
 
 #[hdk_extern]
-pub fn publish_game_result_and_flag(result: (AgentPubKeyB64, f32)) -> ExternResult<()> {
+pub fn publish_game_result_and_flag(result: (AgentPubKeyB64, f32)) -> ExternResult<EntryHashB64> {
     create_game_result_and_flag::<ChessEloRating>(
         GameInfo2 {
             opponent: result.0.clone(),

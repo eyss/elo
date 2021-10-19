@@ -77,15 +77,13 @@ pub fn create_game_result_and_flag<S: EloRatingSystem>(
     game_info: S::GameInfo,
     opponent_address: AgentPubKeyB64,
     my_score: f32,
-) -> ExternResult<()> {
+) -> ExternResult<EntryHashB64> {
     let bytes: SerializedBytes = game_info.try_into().or(Err(WasmError::Guest(String::from(
         "Error converting game info into SerializedBytes",
     ))))?;
 
     let new_game_result = build_new_game_result::<S>(bytes, &opponent_address, my_score)?;
-    create_unilateral_game_result_and_flag(new_game_result)?;
-
-    Ok(())
+    create_unilateral_game_result_and_flag(new_game_result)
 }
 
 #[macro_export]

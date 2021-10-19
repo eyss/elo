@@ -12,8 +12,8 @@ use super::{unpublished::unpublished_game_tag, EloUpdate, GameResult};
 
 pub(crate) fn create_unilateral_game_result_and_flag(
     game_result: GameResult,
-) -> ExternResult<HeaderHashB64> {
-    let header_hash = create_entry(game_result.clone())?;
+) -> ExternResult<EntryHashB64> {
+    create_entry(game_result.clone())?;
 
     let opponent = game_result.opponent()?;
 
@@ -31,13 +31,15 @@ pub(crate) fn create_unilateral_game_result_and_flag(
         unpublished_game_tag(),
     )?;
 
+    let entry_hash: EntryHashB64 = game_result_hash.into();
+
     emit_signal(EloSignal::NewGameResult {
         are_links_missing: false,
-        entry_hash: game_result_hash.into(),
+        entry_hash: entry_hash.clone(),
         game_result,
     })?;
 
-    Ok(header_hash.into())
+    Ok(entry_hash)
 }
 
 pub(crate) fn create_countersigned_game_result(
