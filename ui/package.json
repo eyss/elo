@@ -63,18 +63,18 @@
       "@typescript-eslint"
     ],
     "rules": {
+      "no-empty-function": "off",
+      "no-shadow": "off",
+      "no-useless-constructor": "off",
+      "class-methods-use-this": "off",
+      "no-new": "off",
+      "camelcase": "off",
+      "import/extensions": "off",
       "no-unused-vars": "off",
       "@typescript-eslint/no-unused-vars": [
         "error"
       ],
-      "import/no-unresolved": "off",
-      "import/extensions": [
-        "error",
-        "always",
-        {
-          "ignorePackages": true
-        }
-      ]
+      "import/no-unresolved": "off"
     }
   },
   "prettier": {

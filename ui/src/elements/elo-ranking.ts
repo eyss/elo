@@ -3,11 +3,7 @@ import { html, LitElement } from 'lit';
 import { state } from 'lit/decorators.js';
 import { Card, List, ListItem } from '@scoped-elements/material-web';
 import { contextProvided } from '@lit-labs/context';
-import {
-  profilesStoreContext,
-  ProfilesStore,
-  AgentAvatar,
-} from '@holochain-open-dev/profiles';
+import { AgentAvatar } from '@holochain-open-dev/profiles';
 import { AgentPubKeyB64 } from '@holochain-open-dev/core-types';
 import { SlSkeleton, lightTheme } from '@scoped-elements/shoelace';
 import { StoreSubscriber } from 'lit-svelte-stores';
@@ -27,6 +23,7 @@ export class EloRanking extends ScopedElementsMixin(LitElement) {
     this,
     () => this._eloStore.profilesStore.knownProfiles
   );
+
   _eloRanking = new StoreSubscriber(this, () => this._eloStore.eloRanking);
 
   async firstUpdated() {
@@ -58,7 +55,7 @@ export class EloRanking extends ScopedElementsMixin(LitElement) {
   renderSkeleton() {
     return html` <div class="column" style="margin-top: 8px; margin-left: 4px;">
       ${[0, 1, 2].map(
-        _ => html`
+        () => html`
           <div class="row" style="align-items: center; margin: 8px;">
             <sl-skeleton
               effect="sheen"

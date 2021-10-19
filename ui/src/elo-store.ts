@@ -1,7 +1,7 @@
 import { AgentPubKeyB64, serializeHash } from '@holochain-open-dev/core-types';
 import { ProfilesStore } from '@holochain-open-dev/profiles';
 import { HoloHashed } from '@holochain/conductor-api';
-import { derived, writable, Readable, Writable } from 'svelte/store';
+import { derived, writable, Writable } from 'svelte/store';
 import { EloService } from './elo-service';
 import { GameResult } from './types';
 import { headerTimestamp } from './utils';
@@ -16,11 +16,13 @@ export class EloStore {
   #gameResults: Writable<{
     [key: AgentPubKeyB64]: Array<[HoloHashed<any>, GameResult]>;
   }> = writable({});
+
   #elos: Writable<{
     [key: AgentPubKeyB64]: number;
   }> = writable({});
 
   public elos = derived(this.#elos, i => i);
+
   public eloRanking = derived(this.#elos, i =>
     Object.entries(i)
       .map(([agentPubKey, elo]) => ({ agentPubKey, elo }))
@@ -66,12 +68,12 @@ export class EloStore {
   getOpponent(gameResult: GameResult): AgentPubKeyB64 {
     if (gameResult.player_a.player_address === this.myAgentPubKey)
       return gameResult.player_b.player_address;
-    else return gameResult.player_a.player_address;
+    return gameResult.player_a.player_address;
   }
 
   getMyResult(gameResult: GameResult): number {
     if (gameResult.player_a.player_address) return gameResult.score_player_a;
-    else return 1 - gameResult.score_player_a;
+    return 1 - gameResult.score_player_a;
   }
 
   /** Backend actions */

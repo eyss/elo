@@ -3,10 +3,6 @@ import { styleMap } from 'lit/directives/style-map.js';
 import { contextProvided } from '@lit-labs/context';
 
 import {
-  ProfilesStore,
-  profilesStoreContext,
-} from '@holochain-open-dev/profiles';
-import {
   Card,
   List,
   ListItem,
@@ -47,12 +43,11 @@ export class GameResultsHistory extends ScopedElementsMixin(LitElement) {
   }
 
   getIcon(result: GameResult) {
-    if (this._eloStore.getMyResult(result) === ShortResult.Draw)
-      return 'drag_handle';
     if (this._eloStore.getMyResult(result) === ShortResult.Win)
       return 'thumb_up';
     if (this._eloStore.getMyResult(result) === ShortResult.Loss)
       return 'thumb_down';
+    return 'drag_handle';
   }
 
   getColor(result: GameResult) {
@@ -62,14 +57,14 @@ export class GameResultsHistory extends ScopedElementsMixin(LitElement) {
   }
 
   getSummary() {
-    let summary = {
+    const summary = {
       [ShortResult.Draw]: 0,
       [ShortResult.Loss]: 0,
       [ShortResult.Win]: 0,
     };
 
     for (const result of this._myGameResults.value) {
-      summary[this._eloStore.getMyResult(result[1]) as ShortResult]++;
+      summary[this._eloStore.getMyResult(result[1]) as ShortResult] += 1;
     }
 
     return summary;
@@ -78,7 +73,9 @@ export class GameResultsHistory extends ScopedElementsMixin(LitElement) {
   renderResults() {
     if (this._myGameResults.value.length === 0)
       return html`<div class="column center-content" style="flex: 1;">
-        <span class="placeholder" style="padding: 24px;">There are no games in your history yet</span>
+        <span class="placeholder" style="padding: 24px;"
+          >There are no games in your history yet</span
+        >
       </div>`;
 
     return html`<div class="flex-scrollable-parent">

@@ -13,25 +13,23 @@
 
     <script type="module">
       import {
-        GameResultsHistory,
-        EloRanking,
-        EloStore,
-        EloService,
-        eloStoreContext,
-      } from '../dist';
-
-      import {
         ProfilePrompt,
-        SearchAgent,
         ProfilesStore,
         profilesStoreContext,
-        ListProfiles,
       } from '@holochain-open-dev/profiles';
       import { AppWebsocket } from '@holochain/conductor-api';
       import { HolochainClient } from '@holochain-open-dev/cell-client';
       import { LitElement, html } from 'lit';
       import { ScopedElementsMixin } from '@open-wc/scoped-elements';
       import { ContextProvider } from '@lit-labs/context';
+
+      import {
+        GameResultsHistory,
+        EloRanking,
+        EloStore,
+        EloService,
+        eloStoreContext,
+      } from '../dist';
 
       class EloTest extends ScopedElementsMixin(LitElement) {
         static get properties() {
