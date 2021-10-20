@@ -61,7 +61,7 @@ export class EloStore {
     public profilesStore: ProfilesStore
   ) {
     // TODO: remove when scheduler actually works
-    setInterval(() => this.eloService.resolveFlags(), 5000);
+    setInterval(() => this.eloService.resolveFlags(), 60 * 1000);
     this.eloService.resolveFlags();
 
     this.eloService.cellClient.addSignalHandler(signal => {

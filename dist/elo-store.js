@@ -29,7 +29,7 @@ export class EloStore {
             ) => headerTimestamp(gr2[0]) - headerTimestamp(gr1[0]));
         });
         // TODO: remove when scheduler actually works
-        setInterval(() => this.eloService.resolveFlags(), 5000);
+        setInterval(() => this.eloService.resolveFlags(), 60 * 1000);
         this.eloService.resolveFlags();
         this.eloService.cellClient.addSignalHandler(signal => {
             if (signal.data.payload.type === 'NewGameResult') {
