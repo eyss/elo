@@ -14,7 +14,7 @@ use crate::{
 #[derive(Serialize, Debug, Deserialize, Clone)]
 #[serde(tag = "type")]
 pub enum CreateGameResultOutcome {
-    Published { entry_hash: EntryHashB64 },
+    Published { game_result_hash: EntryHashB64 },
     OutdatedLastGameResult,
 }
 
@@ -63,7 +63,7 @@ pub fn send_publish_game_result_request<S: EloRatingSystem>(
                         vec![my_response, counterparty_preflight_response],
                     )?;
 
-                    Ok(CreateGameResultOutcome::Published { entry_hash })
+                    Ok(CreateGameResultOutcome::Published { game_result_hash: entry_hash })
                 }
                 PublishGameResultResponse::OutdatedLastGameResult {
                     latest_game_result_hash: _,

@@ -36,11 +36,12 @@ export default (orchestrator: Orchestrator<any>) =>
     const carolKey = serializeHash(carol.cellId[1]);
 
     await sleep(1000);
-    let { entry_hash } = await alice.call("elo", "publish_result", [
+    let { type, game_result_hash } = await alice.call("elo", "publish_result", [
       bobKey,
       1.0,
     ]);
-    await alice.call("elo", "link_my_game_results", [entry_hash]);
+    t.equal(type, "Published");
+    await alice.call("elo", "link_my_game_results", [game_result_hash]);
 
     let outcome = await bob.call("elo", "publish_result", [aliceKey, 0.0]);
     t.equal(outcome.type, "OutdatedLastGameResult");
@@ -80,8 +81,8 @@ export default (orchestrator: Orchestrator<any>) =>
 
     outcome = await bob.call("elo", "publish_result", [aliceKey, 0.0]);
     t.equal(outcome.type, "Published");
-    entry_hash = outcome.entry_hash;
-    await bob.call("elo", "link_my_game_results", [entry_hash]);
+    game_result_hash = outcome.game_result_hash;
+    await bob.call("elo", "link_my_game_results", [game_result_hash]);
 
     await sleep(500);
 
