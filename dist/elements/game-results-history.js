@@ -55,7 +55,7 @@ export class GameResultsHistory extends ScopedElementsMixin(LitElement) {
         return html `<div class="flex-scrollable-parent">
       <div class="flex-scrollable-container">
         <div class="flex-scrollable-y">
-          <mwc-list disabled>
+          <mwc-list noninteractive>
             ${this._myGameResults.value.map(result => html `<mwc-list-item twoline graphic="icon">
                   <span
                     >vs

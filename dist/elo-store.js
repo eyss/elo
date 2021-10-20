@@ -63,10 +63,12 @@ export class EloStore {
     }
     async fetchGameResultsForAgents(agents) {
         const gameResults = await this.eloService.getGameResultsForAgents(agents);
+        await this.fetchEloForAgents(agents);
         __classPrivateFieldGet(this, _EloStore_gameResultsByAgent, "f").update(r => ({ ...r, ...gameResults }));
     }
     async fetchEloForAgents(agents) {
         const elos = await this.eloService.getEloRatingForAgents(agents);
+        await this.fetchEloForAgents(agents);
         __classPrivateFieldGet(this, _EloStore_elosByAgent, "f").update(e => ({ ...e, ...elos }));
     }
     async handleNewGameResult(gameResult, gameResultHash, areLinksMissing) {
@@ -80,7 +82,6 @@ export class EloStore {
         ];
         const promises = [
             this.fetchGameResultsForAgents(players),
-            this.fetchEloForAgents(players),
             this.profilesStore.fetchAgentsProfiles(players),
         ];
         await Promise.all(promises);

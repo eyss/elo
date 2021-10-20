@@ -100,12 +100,14 @@ export class EloStore {
 
   async fetchGameResultsForAgents(agents: AgentPubKeyB64[]): Promise<void> {
     const gameResults = await this.eloService.getGameResultsForAgents(agents);
+    await this.fetchEloForAgents(agents);
 
     this.#gameResultsByAgent.update(r => ({ ...r, ...gameResults }));
   }
 
   async fetchEloForAgents(agents: AgentPubKeyB64[]): Promise<void> {
     const elos = await this.eloService.getEloRatingForAgents(agents);
+    await this.fetchEloForAgents(agents);
     this.#elosByAgent.update(e => ({ ...e, ...elos }));
   }
 
@@ -127,7 +129,6 @@ export class EloStore {
 
     const promises = [
       this.fetchGameResultsForAgents(players),
-      this.fetchEloForAgents(players),
       this.profilesStore.fetchAgentsProfiles(players),
     ];
     await Promise.all(promises);
