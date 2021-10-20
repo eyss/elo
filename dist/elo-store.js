@@ -37,6 +37,9 @@ export class EloStore {
             }
         });
     }
+    eloForAgent(agent) {
+        return derived(__classPrivateFieldGet(this, _EloStore_elosByAgent, "f"), i => i[agent]);
+    }
     get myAgentPubKey() {
         return serializeHash(this.eloService.cellClient.cellId[1]);
     }

@@ -27,6 +27,10 @@ export class EloStore {
 
   public elos = derived(this.#elosByAgent, i => i);
 
+  public eloForAgent(agent: AgentPubKeyB64) {
+    return derived(this.#elosByAgent, i => i[agent]);
+  }
+
   public eloRanking = derived(this.#elosByAgent, i =>
     Object.entries(i)
       .map(([agentPubKey, elo]) => ({ agentPubKey, elo }))

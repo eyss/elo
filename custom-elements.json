@@ -167,6 +167,19 @@
               "privacy": "public"
             },
             {
+              "kind": "method",
+              "name": "eloForAgent",
+              "privacy": "public",
+              "parameters": [
+                {
+                  "name": "agent",
+                  "type": {
+                    "text": "AgentPubKeyB64"
+                  }
+                }
+              ]
+            },
+            {
               "kind": "field",
               "name": "eloRanking",
               "privacy": "public"

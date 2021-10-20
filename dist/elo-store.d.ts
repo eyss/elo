@@ -15,6 +15,7 @@ export declare class EloStore {
     elos: import("svelte/store").Readable<{
         [key: string]: number;
     }>;
+    eloForAgent(agent: AgentPubKeyB64): import("svelte/store").Readable<number>;
     eloRanking: import("svelte/store").Readable<{
         agentPubKey: string;
         elo: number;
