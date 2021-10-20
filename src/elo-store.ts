@@ -61,7 +61,7 @@ export class EloStore {
     public profilesStore: ProfilesStore
   ) {
     // TODO: remove when scheduler actually works
-    setInterval(() => this.eloService.resolveFlags(), 60 * 1000);
+    setInterval(() => this.eloService.resolveFlags(), 10000);
     this.eloService.resolveFlags();
 
     this.eloService.cellClient.addSignalHandler(signal => {
@@ -106,9 +106,12 @@ export class EloStore {
   }
 
   async fetchEloForAgents(agents: AgentPubKeyB64[]): Promise<void> {
-    const elos = await this.eloService.getEloRatingForAgents(agents);
-    await this.fetchEloForAgents(agents);
-    this.#elosByAgent.update(e => ({ ...e, ...elos }));
+    const info = await Promise.all([
+      this.eloService.getEloRatingForAgents(agents),
+      this.profilesStore.fetchAgentsProfiles(agents),
+    ]);
+
+    this.#elosByAgent.update(e => ({ ...e, ...info[0] }));
   }
 
   private async handleNewGameResult(
@@ -129,7 +132,7 @@ export class EloStore {
 
     const promises = [
       this.fetchGameResultsForAgents(players),
-      this.profilesStore.fetchAgentsProfiles(players),
+      this.fetchEloForAgents(players),
     ];
     await Promise.all(promises);
   }

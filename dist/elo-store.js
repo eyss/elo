@@ -29,7 +29,7 @@ export class EloStore {
             ) => headerTimestamp(gr2[0]) - headerTimestamp(gr1[0]));
         });
         // TODO: remove when scheduler actually works
-        setInterval(() => this.eloService.resolveFlags(), 60 * 1000);
+        setInterval(() => this.eloService.resolveFlags(), 10000);
         this.eloService.resolveFlags();
         this.eloService.cellClient.addSignalHandler(signal => {
             if (signal.data.payload.type === 'NewGameResult') {
@@ -67,9 +67,11 @@ export class EloStore {
         __classPrivateFieldGet(this, _EloStore_gameResultsByAgent, "f").update(r => ({ ...r, ...gameResults }));
     }
     async fetchEloForAgents(agents) {
-        const elos = await this.eloService.getEloRatingForAgents(agents);
-        await this.fetchEloForAgents(agents);
-        __classPrivateFieldGet(this, _EloStore_elosByAgent, "f").update(e => ({ ...e, ...elos }));
+        const info = await Promise.all([
+            this.eloService.getEloRatingForAgents(agents),
+            this.profilesStore.fetchAgentsProfiles(agents),
+        ]);
+        __classPrivateFieldGet(this, _EloStore_elosByAgent, "f").update(e => ({ ...e, ...info[0] }));
     }
     async handleNewGameResult(gameResult, gameResultHash, areLinksMissing) {
         // TODO: remove when post_commit lands
@@ -82,7 +84,7 @@ export class EloStore {
         ];
         const promises = [
             this.fetchGameResultsForAgents(players),
-            this.profilesStore.fetchAgentsProfiles(players),
+            this.fetchEloForAgents(players),
         ];
         await Promise.all(promises);
     }
