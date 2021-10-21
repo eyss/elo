@@ -8,7 +8,7 @@ import { HoloHashed } from '@holochain/conductor-api';
 import { derived, writable, Writable } from 'svelte/store';
 import { EloService } from './elo-service';
 import { GameResult } from './types';
-import { headerTimestamp } from './utils';
+import { headerTimestamp, sleep } from './utils';
 
 export enum ShortResult {
   Win = 1.0,
@@ -121,8 +121,13 @@ export class EloStore {
   ) {
     // TODO: remove when post_commit lands
 
-    if (areLinksMissing) {
+    if (
+      areLinksMissing &&
+      gameResult.player_a.player_address === this.myAgentPubKey
+    ) {
       await this.eloService.linkGameResults([gameResultHash]);
+    } else {
+      await sleep(1000);
     }
 
     const players = [

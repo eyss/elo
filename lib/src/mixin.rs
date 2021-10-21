@@ -142,16 +142,22 @@ macro_rules! mixin_elo {
 
                 let opponent = game_result.1.opponent()?;
 
-                create_link(
-                    my_pub_key.clone().into(),
-                    hash.clone(),
-                    $crate::game_results_tag(),
-                )?;
-                create_link(
-                    AgentPubKey::from(opponent.clone()).into(),
-                    hash,
-                    $crate::game_results_tag(),
-                )?;
+                HDK.with(|h| {
+                    h.borrow().create_link(CreateLinkInput::new(
+                        my_pub_key.clone().into(),
+                        hash.clone(),
+                        $crate::game_results_tag().into(),
+                        ChainTopOrdering::Relaxed,
+                    ))
+                })?;
+                HDK.with(|h| {
+                    h.borrow().create_link(CreateLinkInput::new(
+                        AgentPubKey::from(opponent.clone()).into(),
+                        hash,
+                        $crate::game_results_tag(),
+                        ChainTopOrdering::Relaxed,
+                    ))
+                })?;
             }
 
             Ok(())
