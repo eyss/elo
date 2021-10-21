@@ -2,7 +2,7 @@ var _EloStore_gameResultsByAgent, _EloStore_elosByAgent;
 import { __classPrivateFieldGet } from "tslib";
 import { serializeHash, } from '@holochain-open-dev/core-types';
 import { derived, writable } from 'svelte/store';
-import { headerTimestamp } from './utils';
+import { headerTimestamp, sleep } from './utils';
 export var ShortResult;
 (function (ShortResult) {
     ShortResult[ShortResult["Win"] = 1] = "Win";
@@ -75,8 +75,12 @@ export class EloStore {
     }
     async handleNewGameResult(gameResult, gameResultHash, areLinksMissing) {
         // TODO: remove when post_commit lands
-        if (areLinksMissing) {
+        if (areLinksMissing &&
+            gameResult.player_a.player_address === this.myAgentPubKey) {
             await this.eloService.linkGameResults([gameResultHash]);
+        }
+        else {
+            await sleep(1000);
         }
         const players = [
             gameResult.player_a.player_address,
