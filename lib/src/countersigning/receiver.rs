@@ -27,13 +27,12 @@ pub fn handle_request_publish_game_result<S: EloRatingSystem>(
     )))?;
     let game_result_info = GameResultInfo::new(&game_result);
 
-    let validation_output = S::validate_game_result(info, game_result_info)?;
+    let validation_output = S::validate_game_result(info, game_result_info);
 
     match validation_output {
-        ValidateCallbackResult::Valid => Ok(()),
+        Ok(ValidateCallbackResult::Valid) => Ok(()),
         _ => Err(WasmError::Guest(
-            "The game result that the opponent is trying to make me sign is actually not valid"
-                .into(),
+            format!("The game result that the opponent is trying to make me sign is actually not valid: {:?}", validation_output),
         )),
     }?;
 

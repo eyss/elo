@@ -27,6 +27,10 @@ export class EloStore {
 
   public elos = derived(this.#elosByAgent, i => i);
 
+  public eloForAgent(agent: AgentPubKeyB64) {
+    return derived(this.#elosByAgent, i => i[agent]);
+  }
+
   public eloRanking = derived(this.#elosByAgent, i =>
     Object.entries(i)
       .map(([agentPubKey, elo]) => ({ agentPubKey, elo }))
@@ -57,7 +61,7 @@ export class EloStore {
     public profilesStore: ProfilesStore
   ) {
     // TODO: remove when scheduler actually works
-    setInterval(() => this.eloService.resolveFlags(), 5000);
+    setInterval(() => this.eloService.resolveFlags(), 10000);
     this.eloService.resolveFlags();
 
     this.eloService.cellClient.addSignalHandler(signal => {
@@ -96,13 +100,18 @@ export class EloStore {
 
   async fetchGameResultsForAgents(agents: AgentPubKeyB64[]): Promise<void> {
     const gameResults = await this.eloService.getGameResultsForAgents(agents);
+    await this.fetchEloForAgents(agents);
 
     this.#gameResultsByAgent.update(r => ({ ...r, ...gameResults }));
   }
 
   async fetchEloForAgents(agents: AgentPubKeyB64[]): Promise<void> {
-    const elos = await this.eloService.getEloRatingForAgents(agents);
-    this.#elosByAgent.update(e => ({ ...e, ...elos }));
+    const info = await Promise.all([
+      this.eloService.getEloRatingForAgents(agents),
+      this.profilesStore.fetchAgentsProfiles(agents),
+    ]);
+
+    this.#elosByAgent.update(e => ({ ...e, ...info[0] }));
   }
 
   private async handleNewGameResult(
@@ -124,7 +133,6 @@ export class EloStore {
     const promises = [
       this.fetchGameResultsForAgents(players),
       this.fetchEloForAgents(players),
-      this.profilesStore.fetchAgentsProfiles(players),
     ];
     await Promise.all(promises);
   }
