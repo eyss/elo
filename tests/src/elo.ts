@@ -137,7 +137,7 @@ export default (orchestrator: Orchestrator<any>) =>
     // When carol awakes, they resolve their flagged result
     await carol_player.startup({});
 
-    await sleep(30000);
+    await sleep(2000);
 
     // TODO: fix error handling
     await carol.call(
