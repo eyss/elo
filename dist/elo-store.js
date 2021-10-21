@@ -50,7 +50,7 @@ export class EloStore {
         return gameResult.player_a.player_address;
     }
     getMyResult(gameResult) {
-        if (gameResult.player_a.player_address)
+        if (gameResult.player_a.player_address === this.myAgentPubKey)
             return gameResult.score_player_a;
         return 1 - gameResult.score_player_a;
     }
