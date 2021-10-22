@@ -75,12 +75,10 @@ export class EloStore {
     }
     async handleNewGameResult(gameResult, gameResultHash, areLinksMissing) {
         // TODO: remove when post_commit lands
+        await sleep(1000);
         if (areLinksMissing &&
             gameResult.player_a.player_address === this.myAgentPubKey) {
             await this.eloService.linkGameResults([gameResultHash]);
-        }
-        else {
-            await sleep(1000);
         }
         const players = [
             gameResult.player_a.player_address,
