@@ -12,7 +12,10 @@ pub use crate::countersigning::{
 pub use crate::elo_rating::{get_elo_rating_for_agents, EloRating, DRAW, LOSS};
 pub use crate::elo_rating_system::*;
 pub use crate::game_result::{
-    handlers::{game_results_tag, element_to_game_result, get_game_results_for_agents},
+    handlers::{
+        element_to_game_result, game_results_tag, get_game_results_for_agents,
+        link_game_result_if_not_exists,
+    },
     unpublished::try_resolve_unpublished_game_results,
     validation::validate_entry_game_result,
     GameResult, GameResultInfo,

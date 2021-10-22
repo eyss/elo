@@ -127,6 +127,7 @@ macro_rules! mixin_elo {
 
         /**
          * Get the game results for the given agents
+         * TODO: call from post_commit
          */
         #[hdk_extern]
         pub fn link_my_game_results(game_results_hashes: Vec<EntryHashB64>) -> ExternResult<()> {
@@ -142,22 +143,8 @@ macro_rules! mixin_elo {
 
                 let opponent = game_result.1.opponent()?;
 
-                HDK.with(|h| {
-                    h.borrow().create_link(CreateLinkInput::new(
-                        my_pub_key.clone().into(),
-                        hash.clone(),
-                        $crate::game_results_tag().into(),
-                        ChainTopOrdering::Relaxed,
-                    ))
-                })?;
-                HDK.with(|h| {
-                    h.borrow().create_link(CreateLinkInput::new(
-                        AgentPubKey::from(opponent.clone()).into(),
-                        hash,
-                        $crate::game_results_tag(),
-                        ChainTopOrdering::Relaxed,
-                    ))
-                })?;
+                $crate::link_game_result_if_not_exists(my_pub_key.clone(), hash.clone())?;
+                $crate::link_game_result_if_not_exists(opponent.into(), hash)?;
             }
 
             Ok(())

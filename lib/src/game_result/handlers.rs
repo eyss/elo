@@ -10,6 +10,33 @@ use crate::{
 
 use super::{unpublished::unpublished_game_tag, EloUpdate, GameResult};
 
+pub fn link_game_result_if_not_exists(
+    agent_pub_key: AgentPubKey,
+    game_result_hash: EntryHash,
+) -> ExternResult<()> {
+    let links = get_links(agent_pub_key.clone().into(), game_results_tag().into())?;
+
+    if let Some(_) = links
+        .into_inner()
+        .into_iter()
+        .find(|link| link.target.eq(&game_result_hash))
+    {
+        // This game result is already linked: no need to link again
+        return Ok(());
+    }
+
+    HDK.with(|h| {
+        h.borrow().create_link(CreateLinkInput::new(
+            agent_pub_key.clone().into(),
+            game_result_hash.clone(),
+            game_results_tag().into(),
+            ChainTopOrdering::Relaxed,
+        ))
+    })?;
+
+    Ok(())
+}
+
 pub(crate) fn create_unilateral_game_result_and_flag(
     game_result: GameResult,
 ) -> ExternResult<EntryHashB64> {
@@ -225,10 +252,24 @@ pub(crate) fn get_game_results_links_for_agents(
     let mut links: BTreeMap<AgentPubKeyB64, Vec<Link>> = BTreeMap::new();
 
     for (index, pub_key) in agent_pub_keys.into_iter().enumerate() {
-        links.insert(pub_key, results[index].clone().into_inner());
+        let links_for_agent = results[index].clone().into_inner();
+
+        links.insert(pub_key, filter_links_to_same_entry(links_for_agent));
     }
 
     Ok(links)
+}
+
+fn filter_links_to_same_entry(links: Vec<Link>) -> Vec<Link> {
+    let mut links_by_target: BTreeMap<EntryHash, Link> = BTreeMap::new();
+
+    for link in links {
+        if !links_by_target.contains_key(&link.target) {
+            links_by_target.insert(link.target.clone(), link.clone());
+        }
+    }
+
+    links_by_target.into_values().collect()
 }
 
 pub(crate) fn get_game_results_from_links(

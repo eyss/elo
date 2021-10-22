@@ -48,6 +48,8 @@ export default (orchestrator: Orchestrator<any>) =>
 
     await sleep(500);
 
+    await alice.call("elo", "link_my_game_results", [game_result_hash]);
+
     let gameResults = await bob.call("elo", "get_game_results_for_agents", [
       aliceKey,
       bobKey,
@@ -55,6 +57,8 @@ export default (orchestrator: Orchestrator<any>) =>
 
     let aliceGameResult = gameResults[aliceKey][0];
     let bobGameResult = gameResults[bobKey][0];
+
+    t.equal(gameResults[aliceKey].length, 1);
     t.deepEqual(aliceGameResult[1].player_a, {
       player_address: aliceKey,
       current_elo: 1016,
@@ -84,7 +88,7 @@ export default (orchestrator: Orchestrator<any>) =>
     game_result_hash = outcome.game_result_hash;
     await bob.call("elo", "link_my_game_results", [game_result_hash]);
 
-    await sleep(500);
+    await sleep(20000);
 
     gameResults = await bob.call("elo", "get_game_results_for_agents", [
       aliceKey,
@@ -137,7 +141,7 @@ export default (orchestrator: Orchestrator<any>) =>
     // When carol awakes, they resolve their flagged result
     await carol_player.startup({});
 
-    await sleep(2000);
+    await sleep(40000);
 
     // TODO: fix error handling
     await carol.call(
@@ -145,7 +149,7 @@ export default (orchestrator: Orchestrator<any>) =>
       "scheduled_try_resolve_unpublished_game_results",
       null
     );
-    await sleep(500);
+    await sleep(10000);
     gameResults = await bob.call("elo", "get_game_results_for_agents", [
       carolKey,
     ]);
