@@ -4,7 +4,7 @@ use hdk::prelude::holo_hash::*;
 use hdk::prelude::*;
 
 use super::handlers::{element_to_game_result, game_results_tag, get_my_last_game_result};
-use super::{EloSignal, EloUpdate};
+use super::EloUpdate;
 
 pub fn unpublished_game_tag() -> LinkTag {
     LinkTag::new("unpublished_game")
@@ -81,12 +81,13 @@ pub(crate) fn create_game_result_and_resolve_flag<S: EloRatingSystem>(
     let header_hash = create_entry(game_result.clone())?;
 
     let game_result_hash = hash_entry(game_result.clone())?;
-
-    emit_signal(EloSignal::NewGameResult {
-        are_links_missing: false,
-        entry_hash: game_result_hash.clone().into(),
-        game_result,
-    })?;
+    /*
+    TODO: uncomment when bug "Error while sending a Signal to an Interface" is fixed
+     emit_signal(EloSignal::NewGameResult {
+            are_links_missing: false,
+            entry_hash: game_result_hash.clone().into(),
+            game_result,
+        })?; */
 
     create_link(
         agent_info()?.agent_latest_pubkey.into(),

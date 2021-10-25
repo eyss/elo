@@ -88,7 +88,7 @@ export default (orchestrator: Orchestrator<any>) =>
     game_result_hash = outcome.game_result_hash;
     await bob.call("elo", "link_my_game_results", [game_result_hash]);
 
-    await sleep(20000);
+    await sleep(3000);
 
     gameResults = await bob.call("elo", "get_game_results_for_agents", [
       aliceKey,
@@ -149,6 +149,7 @@ export default (orchestrator: Orchestrator<any>) =>
       "scheduled_try_resolve_unpublished_game_results",
       null
     );
+
     await sleep(10000);
     gameResults = await bob.call("elo", "get_game_results_for_agents", [
       carolKey,

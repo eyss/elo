@@ -207,10 +207,8 @@ pub(crate) fn get_last_game_result_for_agents(
 
     // We only care about the latest published game result for an agent
     // since it will contain the latest ELO for that agent
-    for (agent_pub_key, mut links) in game_results_links_by_agent.clone() {
-        links.sort_by(|link_a, link_b| link_b.timestamp.cmp(&link_a.timestamp));
-
-        let only_latest_link = match links.get(0) {
+    for (agent_pub_key, links) in game_results_links_by_agent.clone() {
+        let only_latest_link = match links.last() {
             Some(link) => vec![link.clone()],
             None => vec![],
         };
@@ -254,7 +252,11 @@ pub(crate) fn get_game_results_links_for_agents(
     for (index, pub_key) in agent_pub_keys.into_iter().enumerate() {
         let links_for_agent = results[index].clone().into_inner();
 
-        links.insert(pub_key, filter_links_to_same_entry(links_for_agent));
+        let mut filtered = filter_links_to_same_entry(links_for_agent);
+
+        filtered.sort_by(|link_a, link_b| link_a.timestamp.cmp(&link_b.timestamp));
+
+        links.insert(pub_key, filtered);
     }
 
     Ok(links)
