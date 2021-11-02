@@ -153,12 +153,13 @@ macro_rules! mixin_elo {
         /**
          * Get the game results for the given agents
          */
-        #[hdk_extern]
+        #[hdk_extern(infallible)]
         pub fn scheduled_try_resolve_unpublished_game_results(
             _: Option<Schedule>,
-        ) -> ExternResult<Option<Schedule>> {
-            $crate::try_resolve_unpublished_game_results::<$elo_rating_system>()?;
-            Ok(Some(Schedule::Persisted(format!("* * * * *"))))
+        ) -> Option<Schedule> {
+            warn!("here here");
+            let _r = $crate::try_resolve_unpublished_game_results::<$elo_rating_system>();
+            Some(Schedule::Persisted(format!("* * * * *")))
         }
 
         /**
