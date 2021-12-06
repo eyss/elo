@@ -51,7 +51,7 @@ impl GameResult {
     pub fn entry_type() -> ExternResult<EntryType> {
         Ok(EntryType::App(AppEntryType::new(
             EntryDefIndex::from(0),
-            zome_info()?.zome_id,
+            zome_info()?.id,
             EntryVisibility::Public,
         )))
     }

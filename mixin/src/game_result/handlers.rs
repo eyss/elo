@@ -17,7 +17,6 @@ pub fn link_game_result_if_not_exists(
     let links = get_links(agent_pub_key.clone().into(), game_results_tag().into())?;
 
     if let Some(_) = links
-        .into_inner()
         .into_iter()
         .find(|link| link.target.eq(&game_result_hash))
     {
@@ -250,7 +249,7 @@ pub(crate) fn get_game_results_links_for_agents(
     let mut links: BTreeMap<AgentPubKeyB64, Vec<Link>> = BTreeMap::new();
 
     for (index, pub_key) in agent_pub_keys.into_iter().enumerate() {
-        let links_for_agent = results[index].clone().into_inner();
+        let links_for_agent = results[index].clone();
 
         let mut filtered = filter_links_to_same_entry(links_for_agent);
 

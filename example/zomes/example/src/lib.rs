@@ -31,12 +31,15 @@ pub fn init(_: ()) -> ExternResult<InitCallbackResult> {
     Ok(InitCallbackResult::Pass)
 }
 
-#[hdk_extern]
-fn post_commit(header_hashes: HeaderHashes) -> ExternResult<PostCommitCallbackResult> {
-    post_commit_elo(header_hashes.0)?;
+/* TODO: uncomment when post_commit can do a call
+#[hdk_extern(infallible)]
+fn post_commit(headers: Vec<SignedHeaderHashed>) {
+    let result = post_commit_elo(headers);
 
-    Ok(PostCommitCallbackResult::Success)
-}
+    if let Err(err) = result {
+        error!("Error executing the post_commit_elo function: {:?}", err);
+    }
+} */
 
 #[hdk_extern]
 pub fn publish_result(result: (AgentPubKeyB64, f32)) -> ExternResult<CreateGameResultOutcome> {

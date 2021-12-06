@@ -22,13 +22,13 @@ export default (orchestrator: Orchestrator<any>) =>
     await s.shareAllNodes([alice_player, bob_player, carol_player]);
 
     const alice = alice_happ.cells.find((cell) =>
-      cell.cellNick.includes("/example-elo.dna")
+      cell.cellRole.includes("/example-elo.dna")
     ) as Cell;
     const bob = bob_happ.cells.find((cell) =>
-      cell.cellNick.includes("/example-elo.dna")
+      cell.cellRole.includes("/example-elo.dna")
     ) as Cell;
     const carol = carol_happ.cells.find((cell) =>
-      cell.cellNick.includes("/example-elo.dna")
+      cell.cellRole.includes("/example-elo.dna")
     ) as Cell;
 
     const aliceKey = serializeHash(alice.cellId[1]);
@@ -141,7 +141,7 @@ export default (orchestrator: Orchestrator<any>) =>
     // When carol awakes, they resolve their flagged result
     await carol_player.startup({});
 
-    await sleep(40000);
+    await sleep(50000);
 
     // TODO: fix error handling
     await carol.call(
@@ -150,7 +150,7 @@ export default (orchestrator: Orchestrator<any>) =>
       null
     );
 
-    await sleep(10000);
+    await sleep(20000);
     gameResults = await bob.call("elo", "get_game_results_for_agents", [
       carolKey,
     ]);

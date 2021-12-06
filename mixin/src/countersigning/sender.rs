@@ -47,7 +47,7 @@ pub fn send_publish_game_result_request<S: EloRatingSystem>(
 
     let call_remote_result = call_remote(
         AgentPubKey::from(opponent_address.clone()),
-        zome_info()?.zome_name,
+        zome_info()?.name,
         FunctionName("request_publish_game_result".into()),
         None,
         my_response.clone(),

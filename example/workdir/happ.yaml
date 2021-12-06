@@ -2,7 +2,7 @@
 manifest_version: "1"
 name: example-elo
 description: ~
-slots:
+roles:
 
   - id: example-elo
     provisioning:

@@ -3,18 +3,15 @@ use hdk::prelude::*;
 
 use crate::{
     countersigning::sender::try_create_countersigned_game_result,
-    game_result::{
-        handlers::{build_new_game_result, create_unilateral_game_result_and_flag},
-        GameResult,
-    },
-    CreateGameResultOutcome, EloRatingSystem,
+    game_result::handlers::{build_new_game_result, create_unilateral_game_result_and_flag},
+    CreateGameResultOutcome, EloRatingSystem, GameResult,
 };
 
 pub fn init_elo() -> ExternResult<()> {
     // TODO: restrict to only the agents with which we are playing
     // grant unrestricted access to accept_cap_claim so other agents can send us claims
     let mut functions: GrantedFunctions = BTreeSet::new();
-    functions.insert((zome_info()?.zome_name, "request_publish_game_result".into()));
+    functions.insert((zome_info()?.name, "request_publish_game_result".into()));
     create_cap_grant(CapGrantEntry {
         tag: "".into(),
         // empty access converts to unrestricted
@@ -27,11 +24,16 @@ pub fn init_elo() -> ExternResult<()> {
     Ok(())
 }
 
-pub fn post_commit_elo(header_hashes: Vec<HeaderHash>) -> ExternResult<()> {
+pub fn post_commit_elo(headers: Vec<SignedHeaderHashed>) -> ExternResult<()> {
     let filter = ChainQueryFilter::new()
         .entry_type(GameResult::entry_type()?)
         .include_entries(true);
     let elements = query(filter)?;
+
+    let header_hashes: Vec<HeaderHash> = headers
+        .into_iter()
+        .map(|shh| shh.header_address().clone())
+        .collect();
 
     let newly_created_game_results_elements: Vec<Element> = elements
         .into_iter()
@@ -44,13 +46,15 @@ pub fn post_commit_elo(header_hashes: Vec<HeaderHash>) -> ExternResult<()> {
         .map(|e| e.clone())
         .collect();
 
-    call(
-        None,
-        zome_info()?.zome_name,
-        "link_my_game_results".into(),
-        None,
-        new_entry_hashes,
-    )?;
+    if new_entry_hashes.len() > 0 {
+        call(
+            None,
+            zome_info()?.name,
+            "link_my_game_results".into(),
+            None,
+            new_entry_hashes,
+        )?;
+    }
 
     Ok(())
 }
@@ -157,7 +161,6 @@ macro_rules! mixin_elo {
         pub fn scheduled_try_resolve_unpublished_game_results(
             _: Option<Schedule>,
         ) -> Option<Schedule> {
-            warn!("here here");
             let _r = $crate::try_resolve_unpublished_game_results::<$elo_rating_system>();
             Some(Schedule::Persisted(format!("* * * * *")))
         }

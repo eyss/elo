@@ -36,7 +36,6 @@ fn get_my_unpublished_game_results() -> ExternResult<Vec<UnpublishedGameResult>>
 
     let get_inputs = unpublished_links
         .clone()
-        .into_inner()
         .into_iter()
         .map(|link| GetInput::new(link.target.into(), GetOptions::default()))
         .collect();
@@ -44,7 +43,6 @@ fn get_my_unpublished_game_results() -> ExternResult<Vec<UnpublishedGameResult>>
     let maybe_elements = HDK.with(|hdk| hdk.borrow().get(get_inputs))?;
 
     let create_link_hashes: Vec<HeaderHash> = unpublished_links
-        .into_inner()
         .into_iter()
         .map(|l| l.create_link_hash)
         .collect();
