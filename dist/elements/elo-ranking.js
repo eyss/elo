@@ -5,7 +5,7 @@ import { state } from 'lit/decorators.js';
 import { Card, List, ListItem } from '@scoped-elements/material-web';
 import { contextProvided } from '@lit-labs/context';
 import { AgentAvatar } from '@holochain-open-dev/profiles';
-import { SlSkeleton, lightTheme } from '@scoped-elements/shoelace';
+import { SlSkeleton } from '@scoped-elements/shoelace';
 import { StoreSubscriber } from 'lit-svelte-stores';
 import { eloStoreContext } from '../context';
 import { sharedStyles } from '../shared-styles';
@@ -87,7 +87,7 @@ export class EloRanking extends ScopedElementsMixin(LitElement) {
         };
     }
     static get styles() {
-        return [sharedStyles, lightTheme];
+        return [sharedStyles];
     }
 }
 __decorate([
