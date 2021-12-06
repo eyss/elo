@@ -80,12 +80,6 @@ pub(crate) fn create_game_result_and_resolve_flag<S: EloRatingSystem>(
 
     let game_result_hash = hash_entry(game_result.clone())?;
 
-    emit_signal(EloSignal::NewGameResult {
-        are_links_missing: false,
-        entry_hash: game_result_hash.clone().into(),
-        game_result,
-    })?;
-
     create_link(
         agent_info()?.agent_latest_pubkey.into(),
         game_result_hash.clone(),
@@ -93,6 +87,12 @@ pub(crate) fn create_game_result_and_resolve_flag<S: EloRatingSystem>(
     )?;
 
     delete_link(create_link_hash)?;
+
+    emit_signal(EloSignal::NewGameResult {
+        are_links_missing: false,
+        entry_hash: game_result_hash.clone().into(),
+        game_result,
+    })?;
 
     Ok(header_hash)
 }
