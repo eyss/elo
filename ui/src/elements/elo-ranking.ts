@@ -5,7 +5,7 @@ import { Card, List, ListItem } from '@scoped-elements/material-web';
 import { contextProvided } from '@lit-labs/context';
 import { AgentAvatar } from '@holochain-open-dev/profiles';
 import { AgentPubKeyB64 } from '@holochain-open-dev/core-types';
-import { SlSkeleton, lightTheme } from '@scoped-elements/shoelace';
+import { SlSkeleton } from '@scoped-elements/shoelace';
 import { StoreSubscriber } from 'lit-svelte-stores';
 
 import { eloStoreContext } from '../context';
@@ -108,6 +108,6 @@ export class EloRanking extends ScopedElementsMixin(LitElement) {
   }
 
   static get styles() {
-    return [sharedStyles, lightTheme];
+    return [sharedStyles];
   }
 }
