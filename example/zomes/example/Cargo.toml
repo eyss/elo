@@ -12,5 +12,4 @@ derive_more = "0"
 serde = "1"
 
 hc_mixin_elo = {path = "../../../mixin"}
-hdk = "0.0.115"
-holo_hash = {version = "0.0.12", features = ["encoding"]}
+hdk =  {version = "0.0.120", features = ["encoding"]}

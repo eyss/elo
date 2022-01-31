@@ -35,20 +35,19 @@ export default (orchestrator: Orchestrator<any>) =>
     const bobKey = serializeHash(bob.cellId[1]);
     const carolKey = serializeHash(carol.cellId[1]);
 
-    await sleep(1000);
+    await sleep(40000);
     let { type, game_result_hash } = await alice.call("elo", "publish_result", [
       bobKey,
       1.0,
     ]);
     t.equal(type, "Published");
-    await alice.call("elo", "link_my_game_results", [game_result_hash]);
+
+    await sleep(40000);
 
     let outcome = await bob.call("elo", "publish_result", [aliceKey, 0.0]);
     t.equal(outcome.type, "OutdatedLastGameResult");
 
-    await sleep(500);
-
-    await alice.call("elo", "link_my_game_results", [game_result_hash]);
+    await sleep(40000);
 
     let gameResults = await bob.call("elo", "get_game_results_for_agents", [
       aliceKey,
@@ -81,14 +80,13 @@ export default (orchestrator: Orchestrator<any>) =>
     let previousAliceGameResultHash = serializeHash(aliceGameResult[0].hash);
     let previousBobGameResultHash = serializeHash(bobGameResult[0].hash);
 
-    await sleep(1000);
+    await sleep(40000);
 
     outcome = await bob.call("elo", "publish_result", [aliceKey, 0.0]);
     t.equal(outcome.type, "Published");
     game_result_hash = outcome.game_result_hash;
-    await bob.call("elo", "link_my_game_results", [game_result_hash]);
 
-    await sleep(3000);
+    await sleep(40000);
 
     gameResults = await bob.call("elo", "get_game_results_for_agents", [
       aliceKey,
@@ -141,7 +139,7 @@ export default (orchestrator: Orchestrator<any>) =>
     // When carol awakes, they resolve their flagged result
     await carol_player.startup({});
 
-    await sleep(50000);
+    await sleep(40000);
 
     // TODO: fix error handling
     await carol.call(
@@ -150,7 +148,7 @@ export default (orchestrator: Orchestrator<any>) =>
       null
     );
 
-    await sleep(20000);
+    await sleep(40000);
     gameResults = await bob.call("elo", "get_game_results_for_agents", [
       carolKey,
     ]);
@@ -158,4 +156,11 @@ export default (orchestrator: Orchestrator<any>) =>
 
     elos = await bob.call("elo", "get_elo_rating_for_agents", [carolKey]);
     t.equal(elos[carolKey], 983);
+
+    let eloRanking = await bob.call("elo", "get_elo_ranking_chunk", {
+      agentCount: 10,
+    });
+    t.deepEqual(eloRanking, {
+      983: [carolKey],
+    });
   });

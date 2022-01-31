@@ -6,7 +6,8 @@ version = "0.1.0"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-hdk = "0.0.115"
-holo_hash = {version = "0.0.12", features = ["encoding"]}
 serde = "1"
+
+hdk =  {version = "0.0.120", features = ["encoding"]}
 skill-rating = "0.0.1"
+hc_lib_ranking_index = {git = "https://github.com/holochain-open-dev/ranking-index", rev = "c02d3047f9096fa467e0b0ee64df157d8b2be705"}

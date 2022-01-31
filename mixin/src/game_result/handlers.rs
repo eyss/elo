@@ -2,19 +2,21 @@ use std::collections::BTreeMap;
 
 use hdk::prelude::holo_hash::*;
 use hdk::prelude::*;
+use skill_rating::elo::EloRating;
 
 use crate::{
     elo_rating::elo_rating_from_last_game_result, elo_rating_system::EloRatingSystem,
-    game_result::EloSignal,
+    game_result::EloSignal, put_elo_rating_in_ranking,
 };
 
 use super::{unpublished::unpublished_game_tag, EloUpdate, GameResult};
 
-pub fn link_game_result_if_not_exists(
-    agent_pub_key: AgentPubKey,
+pub fn index_game_result_if_not_exists(
+    elo_update: EloUpdate,
     game_result_hash: EntryHash,
 ) -> ExternResult<()> {
-    let links = get_links(agent_pub_key.clone().into(), game_results_tag().into())?;
+    let player_entry_hash = EntryHash::from(AgentPubKey::from(elo_update.player_address.clone()));
+    let links = get_links(player_entry_hash.clone(), game_results_tag().into())?;
 
     if let Some(_) = links
         .into_iter()
@@ -26,14 +28,54 @@ pub fn link_game_result_if_not_exists(
 
     HDK.with(|h| {
         h.borrow().create_link(CreateLinkInput::new(
-            agent_pub_key.clone().into(),
+            player_entry_hash.clone(),
             game_result_hash.clone(),
             game_results_tag().into(),
             ChainTopOrdering::Relaxed,
         ))
     })?;
 
+    let previous_rating = get_previous_rating(
+        elo_update.player_address.clone(),
+        elo_update.previous_game_result,
+    )?;
+
+    put_elo_rating_in_ranking(
+        game_result_hash,
+        elo_update.player_address.into(),
+        previous_rating,
+        elo_update.current_elo,
+    )?;
+
     Ok(())
+}
+
+fn get_previous_rating(
+    agent_pub_key: AgentPubKeyB64,
+    previous_game_result_hash: Option<HeaderHashB64>,
+) -> ExternResult<Option<(EntryHash, EloRating)>> {
+    match previous_game_result_hash {
+        None => Ok(None),
+        Some(hash) => {
+            let element = get(HeaderHash::from(hash), GetOptions::default())?.ok_or(
+                WasmError::Guest("Couldn't get the previous game result".into()),
+            )?;
+
+            let (_, game_result) = element_to_game_result(element.clone())?;
+            let elo_rating = game_result
+                .elo_update_for(&agent_pub_key)
+                .ok_or(WasmError::Guest(
+                    "This game result was not for this agent".into(),
+                ))?
+                .current_elo;
+
+            let entry_hash = element.header().entry_hash().ok_or(WasmError::Guest(
+                "This element doesn't have an entry hash".into(),
+            ))?;
+
+            Ok(Some((entry_hash.clone(), elo_rating)))
+        }
+    }
 }
 
 pub(crate) fn create_unilateral_game_result_and_flag(
@@ -60,7 +102,6 @@ pub(crate) fn create_unilateral_game_result_and_flag(
     let entry_hash: EntryHashB64 = game_result_hash.into();
 
     emit_signal(EloSignal::NewGameResult {
-        are_links_missing: false,
         entry_hash: entry_hash.clone(),
         game_result,
     })?;
@@ -94,7 +135,6 @@ pub(crate) fn create_countersigned_game_result(
     let entry_hash = EntryHashB64::from(game_result_hash);
 
     emit_signal(EloSignal::NewGameResult {
-        are_links_missing: true,
         entry_hash: entry_hash.clone(),
         game_result,
     })?;

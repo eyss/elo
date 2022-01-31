@@ -4,11 +4,12 @@ import {
   serializeHash,
 } from '@holochain-open-dev/core-types';
 import { ProfilesStore } from '@holochain-open-dev/profiles';
-import { HoloHashed } from '@holochain/conductor-api';
+import { HoloHashed } from '@holochain/client';
 import { derived, writable, Writable } from 'svelte/store';
-import { EloService } from './elo-service';
-import { GameResult } from './types';
-import { headerTimestamp, sleep } from './utils';
+import { EloService } from '../elo-service';
+import { GameResult } from '../types';
+import { headerTimestamp, sleep } from '../utils';
+import { EloRankingStore } from './ranking-store';
 
 export enum ShortResult {
   Win = 1.0,
@@ -17,6 +18,10 @@ export enum ShortResult {
 }
 
 export class EloStore {
+  public get myAgentPubKey() {
+    return serializeHash(this.eloService.cellClient.cellId[1]);
+  }
+
   #gameResultsByAgent: Writable<{
     [key: string]: Array<[HoloHashed<any>, GameResult]>;
   }> = writable({});
@@ -30,12 +35,6 @@ export class EloStore {
   public eloForAgent(agent: AgentPubKeyB64) {
     return derived(this.#elosByAgent, i => i[agent]);
   }
-
-  public eloRanking = derived(this.#elosByAgent, i =>
-    Object.entries(i)
-      .map(([agentPubKey, elo]) => ({ agentPubKey, elo }))
-      .sort((a, b) => b.elo - a.elo)
-  );
 
   public gameResults = derived(this.#gameResultsByAgent, i => i);
 
@@ -52,8 +51,8 @@ export class EloStore {
     );
   });
 
-  public get myAgentPubKey() {
-    return serializeHash(this.eloService.cellClient.cellId[1]);
+  createEloRankingStore(chunkSize: number): EloRankingStore {
+    return new EloRankingStore(this.eloService, this.profilesStore, chunkSize);
   }
 
   constructor(
@@ -68,8 +67,7 @@ export class EloStore {
       if (signal.data.payload.type === 'NewGameResult') {
         this.handleNewGameResult(
           signal.data.payload.game_result,
-          signal.data.payload.entry_hash,
-          signal.data.payload.are_links_missing
+          signal.data.payload.entry_hash
         );
       }
     });
@@ -117,19 +115,8 @@ export class EloStore {
 
   private async handleNewGameResult(
     gameResult: GameResult,
-    gameResultHash: EntryHashB64,
-    areLinksMissing: boolean
+    gameResultHash: EntryHashB64
   ) {
-    // TODO: remove when post_commit lands
-    await sleep(1000);
-
-    if (
-      areLinksMissing &&
-      gameResult.player_a.player_address === this.myAgentPubKey
-    ) {
-      await this.eloService.linkGameResults([gameResultHash]);
-    }
-
     const players = [
       gameResult.player_a.player_address,
       gameResult.player_b.player_address,

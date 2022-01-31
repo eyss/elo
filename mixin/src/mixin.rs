@@ -47,10 +47,12 @@ pub fn post_commit_elo(headers: Vec<SignedHeaderHashed>) -> ExternResult<()> {
         .collect();
 
     if new_entry_hashes.len() > 0 {
-        call(
-            None,
+        let agent_info = agent_info()?;
+
+        call_remote(
+            agent_info.agent_initial_pubkey,
             zome_info()?.name,
-            "link_my_game_results".into(),
+            "index_game_result_if_not_exists".into(),
             None,
             new_entry_hashes,
         )?;
@@ -98,6 +100,14 @@ macro_rules! mixin_elo {
         use std::collections::BTreeMap;
 
         /**
+         * Get the next chunk for the ELO ranking
+         */
+        #[hdk_extern]
+        pub fn get_elo_ranking_chunk(input: GetEloRankingChunkInput) -> ExternResult<EloRanking> {
+            $crate::get_elo_ranking_chunk(input.from_elo, input.agent_count)
+        }
+
+        /**
          * Get the ELO ratings for the given users
          */
         #[hdk_extern]
@@ -130,11 +140,12 @@ macro_rules! mixin_elo {
         }
 
         /**
-         * Get the game results for the given agents
-         * TODO: call from post_commit
+         * Called from post_commit, index the game result
          */
         #[hdk_extern]
-        pub fn link_my_game_results(game_results_hashes: Vec<EntryHashB64>) -> ExternResult<()> {
+        pub fn index_game_result_if_not_exists(
+            game_results_hashes: Vec<EntryHashB64>,
+        ) -> ExternResult<()> {
             let my_pub_key = agent_info()?.agent_latest_pubkey;
 
             for hash_b64 in game_results_hashes {
@@ -143,12 +154,15 @@ macro_rules! mixin_elo {
                 let element = get(hash.clone(), GetOptions::default())?
                     .ok_or(WasmError::Guest("Could not get game result".into()))?;
 
-                let game_result = $crate::element_to_game_result(element)?;
+                let (_, game_result) = $crate::element_to_game_result(element)?;
 
-                let opponent = game_result.1.opponent()?;
+                let elo_update = game_result
+                    .elo_update_for(&my_pub_key.clone().into())
+                    .ok_or(WasmError::Guest(
+                        "We are creating a game result for another".into(),
+                    ))?;
 
-                $crate::link_game_result_if_not_exists(my_pub_key.clone(), hash.clone())?;
-                $crate::link_game_result_if_not_exists(opponent.into(), hash)?;
+                $crate::index_game_result_if_not_exists(elo_update.clone(), hash.clone())?;
             }
 
             Ok(())

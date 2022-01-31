@@ -1,4 +1,5 @@
 mod countersigning;
+mod elo_ranking;
 mod elo_rating;
 mod elo_rating_system;
 mod game_result;
@@ -14,12 +15,13 @@ pub use crate::elo_rating_system::*;
 pub use crate::game_result::{
     handlers::{
         element_to_game_result, game_results_tag, get_game_results_for_agents,
-        link_game_result_if_not_exists,
+        index_game_result_if_not_exists,
     },
     unpublished::try_resolve_unpublished_game_results,
     validation::validate_entry_game_result,
     GameResult, GameResultInfo,
 };
+pub use elo_ranking::*;
 pub use mixin::{
     attempt_create_countersigned_game_result, create_game_result_and_flag, init_elo,
     post_commit_elo,
