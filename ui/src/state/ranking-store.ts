@@ -9,9 +9,9 @@ import {
 } from 'svelte/store';
 import flatten from 'lodash-es/flatten';
 
+import { AgentPubKeyB64 } from '@holochain-open-dev/core-types';
 import { EloService } from '../elo-service';
 import { EloRanking } from '../types';
-import { AgentPubKeyB64 } from '@holochain-open-dev/core-types';
 
 export interface ChunkedEloRanking {
   ranking: EloRanking;
@@ -35,47 +35,52 @@ export class EloRankingStore implements Readable<ChunkedEloRanking> {
   }
 
   async fetchNextChunk() {
-    const fromElo = this.newFromElo();
+    const existingRanking = get(this.#store).ranking;
+
+    const fromElo = this.newFromElo(existingRanking);
+
+    // This is needed to handle the case in which we already have some agents for a
+    // certain ELO and we want to fetch N more than those
+    const chunkSize =
+      this.chunkSize +
+      (fromElo && existingRanking[fromElo]
+        ? existingRanking[fromElo].length
+        : 0);
 
     const nextChunk = await this.eloService.getEloRankingChunk(
       fromElo,
-      this.chunkSize
+      chunkSize
     );
-    let thereAreMoreChunksToFetch = Object.keys(nextChunk).length !== 0;
+    let thereAreMoreChunksToFetch = false;
 
     const pubKeysToFetch: AgentPubKeyB64[] = [];
 
-    const chunk: EloRanking = {};
-
     for (const [ranking, agents] of Object.entries(nextChunk)) {
+      if (!existingRanking[ranking]) existingRanking[ranking] = [];
       for (const agent of agents) {
-        if (pubKeysToFetch.length < this.chunkSize) {
-          pubKeysToFetch.push(agent);
-          if (!chunk[ranking]) chunk[ranking] = [];
-          chunk[ranking].push(agent);
-        } else {
-          thereAreMoreChunksToFetch = true;
+        if (!existingRanking[ranking].includes(agent)) {
+          if (pubKeysToFetch.length < this.chunkSize) {
+            pubKeysToFetch.push(agent);
+            existingRanking[ranking].push(agent);
+          } else {
+            thereAreMoreChunksToFetch = true;
+          }
         }
       }
     }
 
     await this.profilesStore.fetchAgentsProfiles(pubKeysToFetch);
 
-    this.#store.update(({ ranking }) => ({
-      ranking: {
-        ...ranking,
-        ...chunk,
-      },
+    this.#store.set({
+      ranking: existingRanking,
       thereAreMoreChunksToFetch,
-    }));
+    });
   }
 
-  private newFromElo(): number | undefined {
-    const ranking = get(this.#store).ranking;
-
+  private newFromElo(ranking: EloRanking): number | undefined {
     const elos = Object.keys(ranking).map(parseInt);
     if (elos.length === 0) return undefined;
 
-    return Math.min(...elos) - 1;
+    return Math.min(...elos);
   }
 }
