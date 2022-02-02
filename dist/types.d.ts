@@ -1,4 +1,4 @@
-import { AgentPubKeyB64, Dictionary, EntryHashB64, HeaderHashB64 } from '@holochain-open-dev/core-types';
+import { AgentPubKeyB64, Dictionary, HeaderHashB64 } from '@holochain-open-dev/core-types';
 export interface EloUpdate {
     player_address: AgentPubKeyB64;
     current_elo: number;
@@ -10,10 +10,4 @@ export interface GameResult {
     score_player_a: number;
     game_info: any;
 }
-export declare type CreateGameResultOutcome = {
-    type: 'Published';
-    game_result_hash: EntryHashB64;
-} | {
-    type: 'OutdatedLastGameResult';
-};
 export declare type EloRanking = Dictionary<Array<AgentPubKeyB64>>;

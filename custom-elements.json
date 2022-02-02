@@ -40,7 +40,7 @@
               "privacy": "public",
               "return": {
                 "type": {
-                  "text": "Promise<{\n    [key: string]: Array<[HoloHashed<any>, GameResult]>;\n  }>"
+                  "text": "Promise<Dictionary<Array<[HoloHashed<any>, GameResult]>>>"
                 }
               },
               "parameters": [
@@ -58,7 +58,7 @@
               "privacy": "public",
               "return": {
                 "type": {
-                  "text": "Promise<{\n    [key: string]: number;\n  }>"
+                  "text": "Promise<Dictionary<number>>"
                 }
               },
               "parameters": [

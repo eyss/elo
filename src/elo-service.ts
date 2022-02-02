@@ -1,4 +1,4 @@
-import { AgentPubKeyB64 } from '@holochain-open-dev/core-types';
+import { AgentPubKeyB64, Dictionary } from '@holochain-open-dev/core-types';
 import { CellClient } from '@holochain-open-dev/cell-client';
 import { HoloHashed } from '@holochain/client';
 
@@ -7,15 +7,15 @@ import { EloRanking, GameResult } from './types';
 export class EloService {
   constructor(public cellClient: CellClient, protected zomeName: string) {}
 
-  public getGameResultsForAgents(agents: AgentPubKeyB64[]): Promise<{
-    [key: string]: Array<[HoloHashed<any>, GameResult]>;
-  }> {
+  public getGameResultsForAgents(
+    agents: AgentPubKeyB64[]
+  ): Promise<Dictionary<Array<[HoloHashed<any>, GameResult]>>> {
     return this.callZome('get_game_results_for_agents', agents);
   }
 
-  public getEloRatingForAgents(agents: AgentPubKeyB64[]): Promise<{
-    [key: string]: number;
-  }> {
+  public getEloRatingForAgents(
+    agents: AgentPubKeyB64[]
+  ): Promise<Dictionary<number>> {
     return this.callZome('get_elo_rating_for_agents', agents);
   }
 
