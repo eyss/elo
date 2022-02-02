@@ -1,7 +1,6 @@
 var _EloRankingStore_store;
 import { __classPrivateFieldGet } from "tslib";
 import { get, writable, } from 'svelte/store';
-import flatten from 'lodash-es/flatten';
 export class EloRankingStore {
     constructor(eloService, profilesStore, chunkSize) {
         this.eloService = eloService;
@@ -18,13 +17,27 @@ export class EloRankingStore {
     async fetchNextChunk() {
         const fromElo = this.newFromElo();
         const nextChunk = await this.eloService.getEloRankingChunk(fromElo, this.chunkSize);
-        const allPubKeys = flatten(Object.values(nextChunk));
-        await this.profilesStore.fetchAgentsProfiles(allPubKeys);
-        const thereAreMoreChunksToFetch = allPubKeys.length !== 0 && allPubKeys.length >= this.chunkSize;
+        let thereAreMoreChunksToFetch = Object.keys(nextChunk).length !== 0;
+        const pubKeysToFetch = [];
+        const chunk = {};
+        for (const [ranking, agents] of Object.entries(nextChunk)) {
+            for (const agent of agents) {
+                if (pubKeysToFetch.length < this.chunkSize) {
+                    pubKeysToFetch.push(agent);
+                    if (!chunk[ranking])
+                        chunk[ranking] = [];
+                    chunk[ranking].push(agent);
+                }
+                else {
+                    thereAreMoreChunksToFetch = true;
+                }
+            }
+        }
+        await this.profilesStore.fetchAgentsProfiles(pubKeysToFetch);
         __classPrivateFieldGet(this, _EloRankingStore_store, "f").update(({ ranking }) => ({
             ranking: {
                 ...ranking,
-                ...nextChunk,
+                ...chunk,
             },
             thereAreMoreChunksToFetch,
         }));
