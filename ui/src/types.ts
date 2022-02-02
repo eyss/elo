@@ -23,5 +23,4 @@ export type CreateGameResultOutcome =
   | { type: 'Published'; game_result_hash: EntryHashB64 }
   | { type: 'OutdatedLastGameResult' };
 
-
-  export type EloRanking = Dictionary<Array<AgentPubKeyB64>> 
+export type EloRanking = Dictionary<Array<AgentPubKeyB64>>;

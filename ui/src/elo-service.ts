@@ -1,4 +1,4 @@
-import { AgentPubKeyB64, EntryHashB64 } from '@holochain-open-dev/core-types';
+import { AgentPubKeyB64 } from '@holochain-open-dev/core-types';
 import { CellClient } from '@holochain-open-dev/cell-client';
 import { HoloHashed } from '@holochain/client';
 

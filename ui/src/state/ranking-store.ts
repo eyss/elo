@@ -2,7 +2,6 @@ import { ProfilesStore } from '@holochain-open-dev/profiles';
 import {
   get,
   Readable,
-  readable,
   Subscriber,
   Unsubscriber,
   Writable,

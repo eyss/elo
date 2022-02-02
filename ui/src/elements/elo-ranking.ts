@@ -18,7 +18,6 @@ import { StoreSubscriber } from 'lit-svelte-stores';
 import { eloStoreContext } from '../context';
 import { EloStore } from '../state/elo-store';
 import { sharedStyles } from '../shared-styles';
-import { EloRanking } from '../types';
 import { EloRankingStore } from '../state/ranking-store';
 
 export class EloRankingElement extends ScopedElementsMixin(LitElement) {
@@ -49,11 +48,11 @@ export class EloRankingElement extends ScopedElementsMixin(LitElement) {
     element: HTMLElement,
     callback: (visible: boolean) => void
   ) {
-    var options = {
+    const options = {
       root: this.shadowRoot?.firstElementChild,
     };
 
-    var observer = new IntersectionObserver((entries, observer) => {
+    const observer = new IntersectionObserver((entries, observer) => {
       entries.forEach(entry => {
         callback(entry.intersectionRatio > 0);
       });
