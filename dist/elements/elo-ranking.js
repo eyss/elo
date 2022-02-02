@@ -19,7 +19,7 @@ export class EloRankingElement extends ScopedElementsMixin(LitElement) {
         this._eloRanking = new StoreSubscriber(this, () => this._rankingStore);
     }
     async firstUpdated() {
-        this._rankingStore = this._eloStore.createEloRankingStore(10);
+        this._rankingStore = this._eloStore.createEloRankingStore(6);
         await this._rankingStore.fetchNextChunk();
         this._loading = false;
     }
@@ -86,7 +86,7 @@ export class EloRankingElement extends ScopedElementsMixin(LitElement) {
             ${when(this._eloRanking.value.thereAreMoreChunksToFetch, () => html `
                 <div
                   class="row"
-                  style="align-items: center; justify-content: center; height: 80px"
+                  style="align-items: center; justify-content: center"
                 >
                   <mwc-circular-progress
                     indeterminate

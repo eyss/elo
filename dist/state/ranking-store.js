@@ -17,19 +17,27 @@ export class EloRankingStore {
     async fetchNextChunk() {
         const existingRanking = get(__classPrivateFieldGet(this, _EloRankingStore_store, "f")).ranking;
         const fromElo = this.newFromElo(existingRanking);
-        const nextChunk = await this.eloService.getEloRankingChunk(fromElo, this.chunkSize);
-        let thereAreMoreChunksToFetch = Object.keys(nextChunk).length !== 0;
+        // This is needed to handle the case in which we already have some agents for a
+        // certain ELO and we want to fetch N more than those
+        const chunkSize = this.chunkSize +
+            (fromElo && existingRanking[fromElo]
+                ? existingRanking[fromElo].length
+                : 0);
+        const nextChunk = await this.eloService.getEloRankingChunk(fromElo, chunkSize);
+        let thereAreMoreChunksToFetch = false;
         const pubKeysToFetch = [];
         for (const [ranking, agents] of Object.entries(nextChunk)) {
+            if (!existingRanking[ranking])
+                existingRanking[ranking] = [];
             for (const agent of agents) {
-                if (pubKeysToFetch.length < this.chunkSize) {
-                    pubKeysToFetch.push(agent);
-                    if (!existingRanking[ranking])
-                        existingRanking[ranking] = [];
-                    existingRanking[ranking].push(agent);
-                }
-                else {
-                    thereAreMoreChunksToFetch = true;
+                if (!existingRanking[ranking].includes(agent)) {
+                    if (pubKeysToFetch.length < this.chunkSize) {
+                        pubKeysToFetch.push(agent);
+                        existingRanking[ranking].push(agent);
+                    }
+                    else {
+                        thereAreMoreChunksToFetch = true;
+                    }
                 }
             }
         }
@@ -43,7 +51,7 @@ export class EloRankingStore {
         const elos = Object.keys(ranking).map(parseInt);
         if (elos.length === 0)
             return undefined;
-        return Math.min(...elos) - 1;
+        return Math.min(...elos);
     }
 }
 _EloRankingStore_store = new WeakMap();

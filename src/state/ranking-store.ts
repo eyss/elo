@@ -39,22 +39,32 @@ export class EloRankingStore implements Readable<ChunkedEloRanking> {
 
     const fromElo = this.newFromElo(existingRanking);
 
+    // This is needed to handle the case in which we already have some agents for a
+    // certain ELO and we want to fetch N more than those
+    const chunkSize =
+      this.chunkSize +
+      (fromElo && existingRanking[fromElo]
+        ? existingRanking[fromElo].length
+        : 0);
+
     const nextChunk = await this.eloService.getEloRankingChunk(
       fromElo,
-      this.chunkSize
+      chunkSize
     );
-    let thereAreMoreChunksToFetch = Object.keys(nextChunk).length !== 0;
+    let thereAreMoreChunksToFetch = false;
 
     const pubKeysToFetch: AgentPubKeyB64[] = [];
 
     for (const [ranking, agents] of Object.entries(nextChunk)) {
+      if (!existingRanking[ranking]) existingRanking[ranking] = [];
       for (const agent of agents) {
-        if (pubKeysToFetch.length < this.chunkSize) {
-          pubKeysToFetch.push(agent);
-          if (!existingRanking[ranking]) existingRanking[ranking] = [];
-          existingRanking[ranking].push(agent);
-        } else {
-          thereAreMoreChunksToFetch = true;
+        if (!existingRanking[ranking].includes(agent)) {
+          if (pubKeysToFetch.length < this.chunkSize) {
+            pubKeysToFetch.push(agent);
+            existingRanking[ranking].push(agent);
+          } else {
+            thereAreMoreChunksToFetch = true;
+          }
         }
       }
     }
@@ -71,6 +81,6 @@ export class EloRankingStore implements Readable<ChunkedEloRanking> {
     const elos = Object.keys(ranking).map(parseInt);
     if (elos.length === 0) return undefined;
 
-    return Math.min(...elos) - 1;
+    return Math.min(...elos);
   }
 }
