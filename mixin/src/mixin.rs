@@ -4,10 +4,10 @@ use hdk::prelude::*;
 use crate::{
     countersigning::sender::try_create_countersigned_game_result,
     game_result::handlers::{build_new_game_result, create_unilateral_game_result_and_flag},
-    CreateGameResultOutcome, EloRatingSystem, GameResult,
+    CreateGameResultOutcome, EloRatingSystem, GameResult, put_elo_rating_in_ranking,
 };
 
-pub fn init_elo() -> ExternResult<()> {
+pub fn init_elo<S: EloRatingSystem>() -> ExternResult<()> {
     // TODO: restrict to only the agents with which we are playing
     // grant unrestricted access to accept_cap_claim so other agents can send us claims
     let mut functions: GrantedFunctions = BTreeSet::new();
@@ -18,6 +18,15 @@ pub fn init_elo() -> ExternResult<()> {
         access: ().into(),
         functions,
     })?;
+
+    let my_pub_key = agent_info()?.agent_initial_pubkey;
+
+    put_elo_rating_in_ranking(
+        my_pub_key.clone().into(),
+        my_pub_key,
+        None,
+        S::initial_rating(),
+    )?;
 
     schedule("scheduled_try_resolve_unpublished_game_results")?;
 
@@ -143,9 +152,7 @@ macro_rules! mixin_elo {
          * Called from post_commit, index the game result
          */
         #[hdk_extern]
-        pub fn index_game_results(
-            game_results_hashes: Vec<EntryHashB64>,
-        ) -> ExternResult<()> {
+        pub fn index_game_results(game_results_hashes: Vec<EntryHashB64>) -> ExternResult<()> {
             let my_pub_key = agent_info()?.agent_latest_pubkey;
 
             for hash_b64 in game_results_hashes {

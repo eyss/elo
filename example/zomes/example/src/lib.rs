@@ -26,7 +26,7 @@ mixin_elo!(ChessEloRating);
 
 #[hdk_extern]
 pub fn init(_: ()) -> ExternResult<InitCallbackResult> {
-    init_elo()?;
+    init_elo::<ChessEloRating>()?;
 
     Ok(InitCallbackResult::Pass)
 }

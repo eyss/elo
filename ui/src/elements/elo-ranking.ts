@@ -2,6 +2,7 @@ import { ScopedElementsMixin } from '@open-wc/scoped-elements';
 import { html, LitElement } from 'lit';
 import { property, state } from 'lit/decorators.js';
 import { ref } from 'lit/directives/ref.js';
+import { when } from 'lit/directives/when.js';
 import {
   Card,
   CircularProgress,
@@ -20,23 +21,6 @@ import { sharedStyles } from '../shared-styles';
 import { EloRanking } from '../types';
 import { EloRankingStore } from '../state/ranking-store';
 
-function respondToVisibility(
-  element: HTMLElement,
-  callback: (visible: boolean) => void
-) {
-  var options = {
-    root: document.documentElement,
-  };
-
-  var observer = new IntersectionObserver((entries, observer) => {
-    entries.forEach(entry => {
-      callback(entry.intersectionRatio > 0);
-    });
-  }, options);
-
-  observer.observe(element);
-}
-
 export class EloRankingElement extends ScopedElementsMixin(LitElement) {
   @contextProvided({ context: eloStoreContext })
   _eloStore!: EloStore;
@@ -51,13 +35,31 @@ export class EloRankingElement extends ScopedElementsMixin(LitElement) {
 
   @property({ type: Object })
   private _rankingStore!: EloRankingStore;
+
   private _eloRanking = new StoreSubscriber(this, () => this._rankingStore);
 
   async firstUpdated() {
-    this._rankingStore = this._eloStore.createEloRankingStore(10);
+    this._rankingStore = this._eloStore.createEloRankingStore(1);
     await this._rankingStore.fetchNextChunk();
 
     this._loading = false;
+  }
+
+  respondToVisibility(
+    element: HTMLElement,
+    callback: (visible: boolean) => void
+  ) {
+    var options = {
+      root: this.shadowRoot?.firstElementChild,
+    };
+
+    var observer = new IntersectionObserver((entries, observer) => {
+      entries.forEach(entry => {
+        callback(entry.intersectionRatio > 0);
+      });
+    }, options);
+
+    observer.observe(element);
   }
 
   renderPlayer(agentPubKey: AgentPubKeyB64, elo: number) {
@@ -98,42 +100,56 @@ export class EloRankingElement extends ScopedElementsMixin(LitElement) {
     </div>`;
   }
 
+  renderRanking() {
+    const rankingEntries = Object.entries(this._eloRanking.value?.ranking);
+    if (rankingEntries.length === 0) return html``;
+
+    return html`
+      <div class="flex-scrollable-parent">
+        <div class="flex-scrollable-container">
+          <div class="flex-scrollable-y">
+            <mwc-list noninteractive style="margin-right: 8px;">
+              ${rankingEntries.map(([eloRanking, agentsPubKeys]) =>
+                agentsPubKeys.map(agentPubKey =>
+                  this.renderPlayer(agentPubKey, parseInt(eloRanking))
+                )
+              )}
+            </mwc-list>
+
+            ${when(
+              this._eloRanking.value.thereAreMoreChunksToFetch,
+              () => html`
+                <div
+                  class="row"
+                  style="align-items: center; justify-content: center"
+                >
+                  <mwc-circular-progress
+                    indeterminate
+                    ${ref(
+                      el =>
+                        el &&
+                        this.respondToVisibility(
+                          el as HTMLElement,
+                          visible =>
+                            visible && this._rankingStore.fetchNextChunk()
+                        )
+                    )}
+                  ></mwc-circular-progress>
+                </div>
+              `
+            )}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
   render() {
     return html`
       <mwc-card style="flex: 1; min-width: 270px;">
         <div class="column" style="margin: 16px; flex: 1;">
           <span class="title">ELO Ranking</span>
-          ${this._loading
-            ? this.renderSkeleton()
-            : html`
-                <div class="flex-scrollable-parent">
-                  <div class="flex-scrollable-container">
-                    <div class="flex-scrollable-y">
-                      <mwc-list noninteractive style="margin-right: 8px;">
-                        ${Object.entries(this._eloRanking.value).map(
-                          ([eloRanking, agentUpdates]) =>
-                            agentUpdates.map(update =>
-                              this.renderPlayer(
-                                update.player_address,
-                                parseInt(eloRanking)
-                              )
-                            )
-                        )}
-                      </mwc-list>
-
-                      <mwc-circular-progress
-                        ${ref(el =>
-                          respondToVisibility(
-                            el as HTMLElement,
-                            visible =>
-                              visible && this._rankingStore.fetchNextChunk()
-                          )
-                        )}
-                      ></mwc-circular-progress>
-                    </div>
-                  </div>
-                </div>
-              `}
+          ${this._loading ? this.renderSkeleton() : this.renderRanking()}
         </div>
       </mwc-card>
     `;
