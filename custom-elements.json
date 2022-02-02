@@ -1012,7 +1012,15 @@
                 "type": {
                   "text": "number | undefined"
                 }
-              }
+              },
+              "parameters": [
+                {
+                  "name": "ranking",
+                  "type": {
+                    "text": "EloRanking"
+                  }
+                }
+              ]
             }
           ]
         }

@@ -35,7 +35,9 @@ export class EloRankingStore implements Readable<ChunkedEloRanking> {
   }
 
   async fetchNextChunk() {
-    const fromElo = this.newFromElo();
+    const existingRanking = get(this.#store).ranking;
+
+    const fromElo = this.newFromElo(existingRanking);
 
     const nextChunk = await this.eloService.getEloRankingChunk(
       fromElo,
@@ -45,14 +47,12 @@ export class EloRankingStore implements Readable<ChunkedEloRanking> {
 
     const pubKeysToFetch: AgentPubKeyB64[] = [];
 
-    const chunk: EloRanking = {};
-
     for (const [ranking, agents] of Object.entries(nextChunk)) {
       for (const agent of agents) {
         if (pubKeysToFetch.length < this.chunkSize) {
           pubKeysToFetch.push(agent);
-          if (!chunk[ranking]) chunk[ranking] = [];
-          chunk[ranking].push(agent);
+          if (!existingRanking[ranking]) existingRanking[ranking] = [];
+          existingRanking[ranking].push(agent);
         } else {
           thereAreMoreChunksToFetch = true;
         }
@@ -61,18 +61,13 @@ export class EloRankingStore implements Readable<ChunkedEloRanking> {
 
     await this.profilesStore.fetchAgentsProfiles(pubKeysToFetch);
 
-    this.#store.update(({ ranking }) => ({
-      ranking: {
-        ...ranking,
-        ...chunk,
-      },
+    this.#store.set({
+      ranking: existingRanking,
       thereAreMoreChunksToFetch,
-    }));
+    });
   }
 
-  private newFromElo(): number | undefined {
-    const ranking = get(this.#store).ranking;
-
+  private newFromElo(ranking: EloRanking): number | undefined {
     const elos = Object.keys(ranking).map(parseInt);
     if (elos.length === 0) return undefined;
 

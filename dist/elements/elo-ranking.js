@@ -86,7 +86,7 @@ export class EloRankingElement extends ScopedElementsMixin(LitElement) {
             ${when(this._eloRanking.value.thereAreMoreChunksToFetch, () => html `
                 <div
                   class="row"
-                  style="align-items: center; justify-content: center"
+                  style="align-items: center; justify-content: center; height: 80px"
                 >
                   <mwc-circular-progress
                     indeterminate
