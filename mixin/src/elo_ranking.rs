@@ -4,6 +4,8 @@ use hdk::prelude::*;
 use skill_rating::elo::EloRating;
 use std::collections::BTreeMap;
 
+use crate::EloRatingSystem;
+
 pub type EloRanking = BTreeMap<usize, Vec<AgentPubKeyB64>>;
 
 pub const ELO_RANKING_INDEX: RankingIndex = RankingIndex {
@@ -52,7 +54,7 @@ pub fn get_elo_ranking_chunk(
     Ok(elo_ranking)
 }
 
-pub fn put_elo_rating_in_ranking(
+pub fn put_elo_rating_in_ranking<S: EloRatingSystem>(
     game_result_hash: EntryHash,
     agent_pub_key: AgentPubKey,
     previous_rating: Option<(EntryHash, EloRating)>,
@@ -60,6 +62,9 @@ pub fn put_elo_rating_in_ranking(
 ) -> ExternResult<()> {
     if let Some((last_game_result_hash, previous_rating)) = previous_rating {
         ELO_RANKING_INDEX.delete_entry_ranking(last_game_result_hash, previous_rating as i64)?;
+    } else {
+        ELO_RANKING_INDEX
+            .delete_entry_ranking(agent_pub_key.clone().into(), S::initial_rating() as i64)?;
     }
 
     let tag = SerializedBytes::try_from(agent_pub_key)?;

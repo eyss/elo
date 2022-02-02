@@ -89,7 +89,7 @@ pub(crate) fn create_game_result_and_resolve_flag<S: EloRatingSystem>(
 
     delete_link(create_link_hash)?;
 
-    index_game_result_if_not_exists(my_elo_update, game_result_hash.clone())?;
+    index_game_result_if_not_exists::<S>(my_elo_update, game_result_hash.clone())?;
 
     emit_signal(EloSignal::NewGameResult {
         entry_hash: game_result_hash.clone().into(),

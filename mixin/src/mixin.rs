@@ -4,7 +4,7 @@ use hdk::prelude::*;
 use crate::{
     countersigning::sender::try_create_countersigned_game_result,
     game_result::handlers::{build_new_game_result, create_unilateral_game_result_and_flag},
-    CreateGameResultOutcome, EloRatingSystem, GameResult, put_elo_rating_in_ranking,
+    put_elo_rating_in_ranking, EloRatingSystem, GameResult,
 };
 
 pub fn init_elo<S: EloRatingSystem>() -> ExternResult<()> {
@@ -21,7 +21,7 @@ pub fn init_elo<S: EloRatingSystem>() -> ExternResult<()> {
 
     let my_pub_key = agent_info()?.agent_initial_pubkey;
 
-    put_elo_rating_in_ranking(
+    put_elo_rating_in_ranking::<S>(
         my_pub_key.clone().into(),
         my_pub_key,
         None,
@@ -77,7 +77,7 @@ pub fn attempt_create_countersigned_game_result<S: EloRatingSystem>(
     game_info: S::GameInfo,
     opponent_address: AgentPubKeyB64,
     my_score: f32,
-) -> ExternResult<CreateGameResultOutcome> {
+) -> ExternResult<EntryHashB64> {
     let bytes: SerializedBytes = game_info.try_into().or(Err(WasmError::Guest(String::from(
         "Error converting game info into SerializedBytes",
     ))))?;
@@ -98,7 +98,7 @@ pub fn create_game_result_and_flag<S: EloRatingSystem>(
     ))))?;
 
     let new_game_result = build_new_game_result::<S>(bytes, &opponent_address, my_score)?;
-    create_unilateral_game_result_and_flag(new_game_result)
+    create_unilateral_game_result_and_flag::<S>(new_game_result)
 }
 
 #[macro_export]
@@ -132,7 +132,7 @@ macro_rules! mixin_elo {
         #[hdk_extern]
         pub fn request_publish_game_result(
             counterparty_preflight_response: PreflightResponse,
-        ) -> ExternResult<$crate::PublishGameResultResponse> {
+        ) -> ExternResult<PreflightResponse> {
             $crate::handle_request_publish_game_result::<$elo_rating_system>(
                 counterparty_preflight_response,
             )
@@ -169,7 +169,7 @@ macro_rules! mixin_elo {
                         "We are creating a game result for another".into(),
                     ))?;
 
-                $crate::index_game_result_if_not_exists(elo_update.clone(), hash.clone())?;
+                $crate::index_game_result_if_not_exists::<$elo_rating_system>(elo_update.clone(), hash.clone())?;
             }
 
             Ok(())

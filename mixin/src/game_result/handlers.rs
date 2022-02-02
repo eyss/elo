@@ -11,7 +11,7 @@ use crate::{
 
 use super::{unpublished::unpublished_game_tag, EloUpdate, GameResult};
 
-pub fn index_game_result_if_not_exists(
+pub fn index_game_result_if_not_exists<S: EloRatingSystem>(
     elo_update: EloUpdate,
     game_result_hash: EntryHash,
 ) -> ExternResult<()> {
@@ -40,7 +40,7 @@ pub fn index_game_result_if_not_exists(
         elo_update.previous_game_result,
     )?;
 
-    put_elo_rating_in_ranking(
+    put_elo_rating_in_ranking::<S>(
         game_result_hash,
         elo_update.player_address.into(),
         previous_rating,
@@ -78,7 +78,7 @@ fn get_previous_rating(
     }
 }
 
-pub(crate) fn create_unilateral_game_result_and_flag(
+pub(crate) fn create_unilateral_game_result_and_flag<S: EloRatingSystem>(
     game_result: GameResult,
 ) -> ExternResult<EntryHashB64> {
     create_entry(game_result.clone())?;
@@ -94,7 +94,7 @@ pub(crate) fn create_unilateral_game_result_and_flag(
         .ok_or(WasmError::Guest(
             "We are creating a game result for another".into(),
         ))?;
-    index_game_result_if_not_exists(elo_update, game_result_hash.clone())?;
+    index_game_result_if_not_exists::<S>(elo_update, game_result_hash.clone())?;
 
     create_link(
         AgentPubKey::from(opponent).into(),

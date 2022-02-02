@@ -41,7 +41,7 @@ fn post_commit(headers: Vec<SignedHeaderHashed>) {
 }
 
 #[hdk_extern]
-pub fn publish_result(result: (AgentPubKeyB64, f32)) -> ExternResult<CreateGameResultOutcome> {
+pub fn publish_result(result: (AgentPubKeyB64, f32)) -> ExternResult<EntryHashB64> {
     attempt_create_countersigned_game_result::<ChessEloRating>(
         GameInfo2 {
             opponent: result.0.clone(),

@@ -6,9 +6,7 @@ mod game_result;
 mod mixin;
 
 pub use crate::countersigning::{
-    common::PublishGameResultResponse,
-    receiver::handle_request_publish_game_result,
-    sender::{send_publish_game_result_request, CreateGameResultOutcome},
+    receiver::handle_request_publish_game_result, sender::send_publish_game_result_request,
 };
 pub use crate::elo_rating::{get_elo_rating_for_agents, EloRating, DRAW, LOSS};
 pub use crate::elo_rating_system::*;

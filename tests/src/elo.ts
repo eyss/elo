@@ -39,11 +39,11 @@ export default (orchestrator: Orchestrator<any>) =>
 
     // When two concurrent calls occur, the second one fails
 
-    let { type, game_result_hash } = await alice.call("elo", "publish_result", [
+    let game_result_hash = await alice.call("elo", "publish_result", [
       bobKey,
       1.0,
     ]);
-    t.equal("Published", type);
+    t.ok(game_result_hash);
 
     await sleep(4000);
 
@@ -81,7 +81,7 @@ export default (orchestrator: Orchestrator<any>) =>
     await sleep(4000);
 
     let outcome = await bob.call("elo", "publish_result", [aliceKey, 0.0]);
-    t.equal(outcome.type, "Published");
+    t.ok(outcome);
     game_result_hash = outcome.game_result_hash;
 
     await sleep(10000);
@@ -165,9 +165,12 @@ export default (orchestrator: Orchestrator<any>) =>
     let eloRanking = await bob.call("elo", "get_elo_ranking_chunk", {
       agentCount: 10,
     });
-    t.deepEqual({
-      987: [bobKey],
-      983: [carolKey],
-      1030: [aliceKey],
-    }, eloRanking);
+    t.deepEqual(
+      {
+        987: [bobKey],
+        983: [carolKey],
+        1030: [aliceKey],
+      },
+      eloRanking
+    );
   });
