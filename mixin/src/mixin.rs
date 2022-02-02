@@ -52,7 +52,7 @@ pub fn post_commit_elo(headers: Vec<SignedHeaderHashed>) -> ExternResult<()> {
         call_remote(
             agent_info.agent_initial_pubkey,
             zome_info()?.name,
-            "index_game_result_if_not_exists".into(),
+            "index_game_results".into(),
             None,
             new_entry_hashes,
         )?;
@@ -143,7 +143,7 @@ macro_rules! mixin_elo {
          * Called from post_commit, index the game result
          */
         #[hdk_extern]
-        pub fn index_game_result_if_not_exists(
+        pub fn index_game_results(
             game_results_hashes: Vec<EntryHashB64>,
         ) -> ExternResult<()> {
             let my_pub_key = agent_info()?.agent_latest_pubkey;

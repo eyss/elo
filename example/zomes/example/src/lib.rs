@@ -20,7 +20,7 @@ impl EloRatingSystem for ChessEloRating {
     }
 }
 
-entry_defs![GameResult::entry_def()];
+entry_defs![GameResult::entry_def(), PathEntry::entry_def()];
 
 mixin_elo!(ChessEloRating);
 
@@ -38,7 +38,7 @@ fn post_commit(headers: Vec<SignedHeaderHashed>) {
     if let Err(err) = result {
         error!("Error executing the post_commit_elo function: {:?}", err);
     }
-} 
+}
 
 #[hdk_extern]
 pub fn publish_result(result: (AgentPubKeyB64, f32)) -> ExternResult<CreateGameResultOutcome> {

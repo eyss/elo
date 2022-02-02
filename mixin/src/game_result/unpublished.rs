@@ -1,9 +1,10 @@
 use crate::game_result::GameResult;
+use crate::index_game_result_if_not_exists;
 use crate::{elo_rating::elo_rating_from_last_game_result, elo_rating_system::EloRatingSystem};
 use hdk::prelude::holo_hash::*;
 use hdk::prelude::*;
 
-use super::handlers::{element_to_game_result, game_results_tag, get_my_last_game_result};
+use super::handlers::{element_to_game_result, get_my_last_game_result};
 use super::{EloSignal, EloUpdate};
 
 pub fn unpublished_game_tag() -> LinkTag {
@@ -76,17 +77,19 @@ pub(crate) fn create_game_result_and_resolve_flag<S: EloRatingSystem>(
 ) -> ExternResult<HeaderHash> {
     rebase_game_result::<S>(&mut game_result.clone())?;
 
+    let my_agent_pub_key = agent_info()?.agent_initial_pubkey;
+
+    let my_elo_update = game_result
+        .elo_update_for(&AgentPubKeyB64::from(my_agent_pub_key))
+        .ok_or(WasmError::Guest("Invalid game result".into()))?;
+
     let header_hash = create_entry(game_result.clone())?;
 
     let game_result_hash = hash_entry(game_result.clone())?;
 
-    create_link(
-        agent_info()?.agent_latest_pubkey.into(),
-        game_result_hash.clone(),
-        game_results_tag(),
-    )?;
-
     delete_link(create_link_hash)?;
+
+    index_game_result_if_not_exists(my_elo_update, game_result_hash.clone())?;
 
     emit_signal(EloSignal::NewGameResult {
         entry_hash: game_result_hash.clone().into(),

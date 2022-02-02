@@ -1,12 +1,8 @@
-use hdk::prelude::holo_hash::*;
 use hdk::prelude::*;
 
 use crate::{
     elo_rating_system::EloRatingSystem,
-    game_result::{
-        handlers::{create_countersigned_game_result, get_my_last_game_result},
-        GameResult, GameResultInfo,
-    },
+    game_result::{handlers::create_countersigned_game_result, GameResult, GameResultInfo},
 };
 
 use super::common::PublishGameResultResponse;
@@ -35,7 +31,7 @@ pub fn handle_request_publish_game_result<S: EloRatingSystem>(
             format!("The game result that the opponent is trying to make me sign is actually not valid: {:?}", validation_output),
         )),
     }?;
-
+    /*
     if let IsGameResultHashOutdated::Yes {
         latest_game_result_hash,
     } = is_request_game_result_hash_outdated(&game_result)?
@@ -43,7 +39,7 @@ pub fn handle_request_publish_game_result<S: EloRatingSystem>(
         return Ok(PublishGameResultResponse::OutdatedLastGameResult {
             latest_game_result_hash,
         });
-    }
+    } */
 
     let my_response = match accept_countersigning_preflight_request(request.clone())? {
         PreflightRequestAcceptance::Accepted(response) => Ok(response),
@@ -59,8 +55,7 @@ pub fn handle_request_publish_game_result<S: EloRatingSystem>(
     Ok(PublishGameResultResponse::InSession(my_response))
 }
 
-/** Helper functions */
-
+/*
 enum IsGameResultHashOutdated {
     Yes {
         latest_game_result_hash: HeaderHashB64,
@@ -101,3 +96,4 @@ fn is_request_game_result_hash_outdated(
         _ => Err(WasmError::Guest("Unreachable: the requesting agent knows about a game result for the reponse agent that not even the response agent knows about".into()))
     }
 }
+ */

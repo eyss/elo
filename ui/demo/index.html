@@ -25,7 +25,7 @@
 
       import {
         GameResultsHistory,
-        EloRanking,
+        EloRankingElement,
         EloStore,
         EloService,
         eloStoreContext,
@@ -63,9 +63,6 @@
         render() {
           if (!this.loaded) return html`<span>Loading...</span>`;
           return html`
-            <holo-identicon
-              hash="uhCAkSEspAJks5Q8863Jg1RJhuJHJpFWzwDJkxVjVSk9JueU"
-            ></holo-identicon>
             <profile-prompt>
               <game-results-history></game-results-history>
               <elo-ranking></elo-ranking>
@@ -77,7 +74,7 @@
           return {
             'profile-prompt': ProfilePrompt,
             'game-results-history': GameResultsHistory,
-            'elo-ranking': EloRanking,
+            'elo-ranking': EloRankingElement,
             'holo-identicon': HoloIdenticon,
           };
         }

@@ -35,19 +35,17 @@ export default (orchestrator: Orchestrator<any>) =>
     const bobKey = serializeHash(bob.cellId[1]);
     const carolKey = serializeHash(carol.cellId[1]);
 
-    await sleep(40000);
+    await sleep(4000);
+
+    // When two concurrent calls occur, the second one fails
+
     let { type, game_result_hash } = await alice.call("elo", "publish_result", [
       bobKey,
       1.0,
     ]);
-    t.equal(type, "Published");
+    t.equal("Published", type);
 
-    await sleep(40000);
-
-    let outcome = await bob.call("elo", "publish_result", [aliceKey, 0.0]);
-    t.equal(outcome.type, "OutdatedLastGameResult");
-
-    await sleep(40000);
+    await sleep(4000);
 
     let gameResults = await bob.call("elo", "get_game_results_for_agents", [
       aliceKey,
@@ -80,18 +78,19 @@ export default (orchestrator: Orchestrator<any>) =>
     let previousAliceGameResultHash = serializeHash(aliceGameResult[0].hash);
     let previousBobGameResultHash = serializeHash(bobGameResult[0].hash);
 
-    await sleep(40000);
+    await sleep(4000);
 
-    outcome = await bob.call("elo", "publish_result", [aliceKey, 0.0]);
+    let outcome = await bob.call("elo", "publish_result", [aliceKey, 0.0]);
     t.equal(outcome.type, "Published");
     game_result_hash = outcome.game_result_hash;
 
-    await sleep(40000);
+    await sleep(10000);
 
     gameResults = await bob.call("elo", "get_game_results_for_agents", [
       aliceKey,
       bobKey,
     ]);
+
     aliceGameResult = gameResults[aliceKey][1];
     bobGameResult = gameResults[bobKey][1];
     t.deepEqual(aliceGameResult[1].player_b, {
@@ -139,7 +138,7 @@ export default (orchestrator: Orchestrator<any>) =>
     // When carol awakes, they resolve their flagged result
     await carol_player.startup({});
 
-    await sleep(40000);
+    await sleep(25000);
 
     // TODO: fix error handling
     await carol.call(
@@ -148,19 +147,27 @@ export default (orchestrator: Orchestrator<any>) =>
       null
     );
 
-    await sleep(40000);
+    await sleep(25000);
     gameResults = await bob.call("elo", "get_game_results_for_agents", [
       carolKey,
     ]);
     t.equal(gameResults[carolKey].length, 1);
 
-    elos = await bob.call("elo", "get_elo_rating_for_agents", [carolKey]);
-    t.equal(elos[carolKey], 983);
+    elos = await bob.call("elo", "get_elo_rating_for_agents", [
+      carolKey,
+      bobKey,
+      aliceKey,
+    ]);
+    t.equal(1030, elos[aliceKey]);
+    t.equal(987, elos[bobKey]);
+    t.equal(983, elos[carolKey]);
 
     let eloRanking = await bob.call("elo", "get_elo_ranking_chunk", {
       agentCount: 10,
     });
-    t.deepEqual(eloRanking, {
+    t.deepEqual({
+      987: [bobKey],
       983: [carolKey],
-    });
+      1030: [aliceKey],
+    }, eloRanking);
   });

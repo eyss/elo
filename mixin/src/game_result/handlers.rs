@@ -87,11 +87,14 @@ pub(crate) fn create_unilateral_game_result_and_flag(
 
     let game_result_hash = hash_entry(game_result.clone())?;
 
-    create_link(
-        agent_info()?.agent_latest_pubkey.into(),
-        game_result_hash.clone(),
-        game_results_tag(),
-    )?;
+    let my_pub_key = agent_info()?.agent_latest_pubkey;
+
+    let elo_update = game_result
+        .elo_update_for(&my_pub_key.clone().into())
+        .ok_or(WasmError::Guest(
+            "We are creating a game result for another".into(),
+        ))?;
+    index_game_result_if_not_exists(elo_update, game_result_hash.clone())?;
 
     create_link(
         AgentPubKey::from(opponent).into(),

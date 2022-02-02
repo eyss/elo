@@ -6,7 +6,7 @@ pub mod handlers;
 pub mod unpublished;
 pub mod validation;
 
-#[hdk_entry(id = "game_result")]
+#[hdk_entry(id = "game_result", required_validation_type = "sub_chain")]
 #[derive(Clone, PartialEq, PartialOrd)]
 pub struct GameResult {
     pub player_a: EloUpdate,
