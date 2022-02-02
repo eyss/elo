@@ -38,7 +38,7 @@ export class EloRankingElement extends ScopedElementsMixin(LitElement) {
   private _eloRanking = new StoreSubscriber(this, () => this._rankingStore);
 
   async firstUpdated() {
-    this._rankingStore = this._eloStore.createEloRankingStore(10);
+    this._rankingStore = this._eloStore.createEloRankingStore(6);
     await this._rankingStore.fetchNextChunk();
 
     this._loading = false;
