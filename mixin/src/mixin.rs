@@ -153,8 +153,6 @@ macro_rules! mixin_elo {
          */
         #[hdk_extern]
         pub fn index_game_results(game_results_hashes: Vec<EntryHashB64>) -> ExternResult<()> {
-            let my_pub_key = agent_info()?.agent_latest_pubkey;
-
             for hash_b64 in game_results_hashes {
                 let hash = EntryHash::from(hash_b64);
                 // TODO: remove linking from opponent when postcommit lands
@@ -163,13 +161,7 @@ macro_rules! mixin_elo {
 
                 let (_, game_result) = $crate::element_to_game_result(element)?;
 
-                let elo_update = game_result
-                    .elo_update_for(&my_pub_key.clone().into())
-                    .ok_or(WasmError::Guest(
-                        "We are creating a game result for another".into(),
-                    ))?;
-
-                $crate::index_game_result_if_not_exists::<$elo_rating_system>(elo_update.clone(), hash.clone())?;
+                $crate::index_game_result_if_not_exists::<$elo_rating_system>(game_result.clone(), hash.clone())?;
             }
 
             Ok(())

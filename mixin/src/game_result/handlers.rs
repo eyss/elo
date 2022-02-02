@@ -12,9 +12,15 @@ use crate::{
 use super::{unpublished::unpublished_game_tag, EloUpdate, GameResult};
 
 pub fn index_game_result_if_not_exists<S: EloRatingSystem>(
-    elo_update: EloUpdate,
+    game_result: GameResult,
     game_result_hash: EntryHash,
 ) -> ExternResult<()> {
+    let my_agent_pub_key = agent_info()?.agent_initial_pubkey;
+
+    let elo_update = game_result
+        .elo_update_for(&AgentPubKeyB64::from(my_agent_pub_key))
+        .ok_or(WasmError::Guest("Invalid game result".into()))?;
+
     let player_entry_hash = EntryHash::from(AgentPubKey::from(elo_update.player_address.clone()));
     let links = get_links(player_entry_hash.clone(), game_results_tag().into())?;
 
@@ -41,11 +47,16 @@ pub fn index_game_result_if_not_exists<S: EloRatingSystem>(
     )?;
 
     put_elo_rating_in_ranking::<S>(
-        game_result_hash,
+        game_result_hash.clone(),
         elo_update.player_address.into(),
         previous_rating,
         elo_update.current_elo,
     )?;
+
+    emit_signal(EloSignal::NewGameResult {
+        entry_hash: game_result_hash.into(),
+        game_result,
+    })?;
 
     Ok(())
 }
@@ -87,27 +98,14 @@ pub(crate) fn create_unilateral_game_result_and_flag<S: EloRatingSystem>(
 
     let game_result_hash = hash_entry(game_result.clone())?;
 
-    let my_pub_key = agent_info()?.agent_latest_pubkey;
-
-    let elo_update = game_result
-        .elo_update_for(&my_pub_key.clone().into())
-        .ok_or(WasmError::Guest(
-            "We are creating a game result for another".into(),
-        ))?;
-    index_game_result_if_not_exists::<S>(elo_update, game_result_hash.clone())?;
-
     create_link(
         AgentPubKey::from(opponent).into(),
         game_result_hash.clone(),
         unpublished_game_tag(),
     )?;
 
+    index_game_result_if_not_exists::<S>(game_result, game_result_hash.clone())?;
     let entry_hash: EntryHashB64 = game_result_hash.into();
-
-    emit_signal(EloSignal::NewGameResult {
-        entry_hash: entry_hash.clone(),
-        game_result,
-    })?;
 
     Ok(entry_hash)
 }
@@ -136,11 +134,6 @@ pub(crate) fn create_countersigned_game_result(
     })?;
 
     let entry_hash = EntryHashB64::from(game_result_hash);
-
-    emit_signal(EloSignal::NewGameResult {
-        entry_hash: entry_hash.clone(),
-        game_result,
-    })?;
 
     Ok(entry_hash)
 }
