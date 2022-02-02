@@ -38,7 +38,7 @@ export class EloRankingElement extends ScopedElementsMixin(LitElement) {
   private _eloRanking = new StoreSubscriber(this, () => this._rankingStore);
 
   async firstUpdated() {
-    this._rankingStore = this._eloStore.createEloRankingStore(1);
+    this._rankingStore = this._eloStore.createEloRankingStore(10);
     await this._rankingStore.fetchNextChunk();
 
     this._loading = false;
@@ -64,6 +64,8 @@ export class EloRankingElement extends ScopedElementsMixin(LitElement) {
   renderPlayer(agentPubKey: AgentPubKeyB64, elo: number) {
     const profile = this._allProfiles.value[agentPubKey];
 
+    if (!profile) return html``;
+
     return html`
       <mwc-list-item
         graphic="avatar"
@@ -73,7 +75,7 @@ export class EloRankingElement extends ScopedElementsMixin(LitElement) {
       >
         <agent-avatar slot="graphic" .agentPubKey=${agentPubKey}>
         </agent-avatar>
-        <span>${profile ? profile.nickname : agentPubKey}</span>
+        <span>${profile.nickname}</span>
         <span slot="meta" style="color: black; font-size: 16px;">${elo}</span>
       </mwc-list-item>
     `;

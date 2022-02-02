@@ -11,6 +11,7 @@ import flatten from 'lodash-es/flatten';
 
 import { EloService } from '../elo-service';
 import { EloRanking } from '../types';
+import { AgentPubKeyB64 } from '@holochain-open-dev/core-types';
 
 export interface ChunkedEloRanking {
   ranking: EloRanking;
@@ -40,18 +41,30 @@ export class EloRankingStore implements Readable<ChunkedEloRanking> {
       fromElo,
       this.chunkSize
     );
+    let thereAreMoreChunksToFetch = Object.keys(nextChunk).length !== 0;
 
-    const allPubKeys = flatten(Object.values(nextChunk));
+    const pubKeysToFetch: AgentPubKeyB64[] = [];
 
-    await this.profilesStore.fetchAgentsProfiles(allPubKeys);
+    const chunk: EloRanking = {};
 
-    const thereAreMoreChunksToFetch =
-      allPubKeys.length !== 0 && allPubKeys.length >= this.chunkSize;
+    for (const [ranking, agents] of Object.entries(nextChunk)) {
+      for (const agent of agents) {
+        if (pubKeysToFetch.length < this.chunkSize) {
+          pubKeysToFetch.push(agent);
+          if (!chunk[ranking]) chunk[ranking] = [];
+          chunk[ranking].push(agent);
+        } else {
+          thereAreMoreChunksToFetch = true;
+        }
+      }
+    }
+
+    await this.profilesStore.fetchAgentsProfiles(pubKeysToFetch);
 
     this.#store.update(({ ranking }) => ({
       ranking: {
         ...ranking,
-        ...nextChunk,
+        ...chunk,
       },
       thereAreMoreChunksToFetch,
     }));
