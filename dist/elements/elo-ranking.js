@@ -72,7 +72,7 @@ export class EloRankingElement extends ScopedElementsMixin(LitElement) {
     }
     renderRanking() {
         var _a;
-        const rankingEntries = Object.entries((_a = this._eloRanking.value) === null || _a === void 0 ? void 0 : _a.ranking);
+        const rankingEntries = Object.entries((_a = this._eloRanking.value) === null || _a === void 0 ? void 0 : _a.ranking).sort(([r1, _], [r2, __]) => parseInt(r2) - parseInt(r1));
         if (rankingEntries.length === 0)
             return html ``;
         return html `

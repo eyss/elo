@@ -56,10 +56,12 @@ export class GameResultsHistory extends ScopedElementsMixin(LitElement) {
       <div class="flex-scrollable-container">
         <div class="flex-scrollable-y">
           <mwc-list noninteractive>
-            ${this._myGameResults.value.map(result => html `<mwc-list-item twoline graphic="icon">
+            ${this._myGameResults.value.map(result => {
+            var _a;
+            return html `<mwc-list-item twoline graphic="icon">
                   <span
                     >vs
-                    ${this._knownProfiles.value[this._eloStore.getOpponent(result[1])].nickname}
+                    ${(_a = this._knownProfiles.value[this._eloStore.getOpponent(result[1])]) === null || _a === void 0 ? void 0 : _a.nickname}
                   </span>
                   <span slot="secondary"
                     >${new Date(headerTimestamp(result[0])).toLocaleString()}</span
@@ -67,11 +69,12 @@ export class GameResultsHistory extends ScopedElementsMixin(LitElement) {
                   <mwc-icon
                     slot="graphic"
                     style=${styleMap({
-            color: this.getColor(result[1]),
-        })}
+                color: this.getColor(result[1]),
+            })}
                     >${this.getIcon(result[1])}</mwc-icon
                   >
-                </mwc-list-item>`)}
+                </mwc-list-item>`;
+        })}
           </mwc-list>
         </div>
       </div>

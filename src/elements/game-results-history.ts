@@ -89,7 +89,7 @@ export class GameResultsHistory extends ScopedElementsMixin(LitElement) {
                     >vs
                     ${this._knownProfiles.value[
                       this._eloStore.getOpponent(result[1])
-                    ].nickname}
+                    ]?.nickname}
                   </span>
                   <span slot="secondary"
                     >${new Date(
