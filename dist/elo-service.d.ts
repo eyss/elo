@@ -1,7 +1,7 @@
-import { AgentPubKeyB64, EntryHashB64 } from '@holochain-open-dev/core-types';
+import { AgentPubKeyB64 } from '@holochain-open-dev/core-types';
 import { CellClient } from '@holochain-open-dev/cell-client';
-import { HoloHashed } from '@holochain/conductor-api';
-import { GameResult } from './types';
+import { HoloHashed } from '@holochain/client';
+import { EloRanking, GameResult } from './types';
 export declare class EloService {
     cellClient: CellClient;
     protected zomeName: string;
@@ -12,7 +12,7 @@ export declare class EloService {
     getEloRatingForAgents(agents: AgentPubKeyB64[]): Promise<{
         [key: string]: number;
     }>;
+    getEloRankingChunk(fromElo: number | undefined, agentCount: number): Promise<EloRanking>;
     resolveFlags(): Promise<void>;
-    linkGameResults(entryHashes: EntryHashB64[]): Promise<void>;
     private callZome;
 }

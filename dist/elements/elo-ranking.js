@@ -1,26 +1,39 @@
 import { __decorate } from "tslib";
 import { ScopedElementsMixin } from '@open-wc/scoped-elements';
 import { html, LitElement } from 'lit';
-import { state } from 'lit/decorators.js';
-import { Card, List, ListItem } from '@scoped-elements/material-web';
-import { contextProvided } from '@lit-labs/context';
+import { property, state } from 'lit/decorators.js';
+import { ref } from 'lit/directives/ref.js';
+import { when } from 'lit/directives/when.js';
+import { Card, CircularProgress, List, ListItem, } from '@scoped-elements/material-web';
+import { contextProvided } from '@holochain-open-dev/context';
 import { AgentAvatar } from '@holochain-open-dev/profiles';
 import { SlSkeleton } from '@scoped-elements/shoelace';
 import { StoreSubscriber } from 'lit-svelte-stores';
 import { eloStoreContext } from '../context';
 import { sharedStyles } from '../shared-styles';
-export class EloRanking extends ScopedElementsMixin(LitElement) {
+export class EloRankingElement extends ScopedElementsMixin(LitElement) {
     constructor() {
         super(...arguments);
         this._loading = true;
         this._allProfiles = new StoreSubscriber(this, () => this._eloStore.profilesStore.knownProfiles);
-        this._eloRanking = new StoreSubscriber(this, () => this._eloStore.eloRanking);
+        this._eloRanking = new StoreSubscriber(this, () => this._rankingStore);
     }
     async firstUpdated() {
-        await this._eloStore.profilesStore.fetchAllProfiles();
-        const allPubKeys = Object.keys(this._allProfiles.value);
-        await this._eloStore.fetchEloForAgents(allPubKeys);
+        this._rankingStore = this._eloStore.createEloRankingStore(1);
+        await this._rankingStore.fetchNextChunk();
         this._loading = false;
+    }
+    respondToVisibility(element, callback) {
+        var _a;
+        const options = {
+            root: (_a = this.shadowRoot) === null || _a === void 0 ? void 0 : _a.firstElementChild,
+        };
+        const observer = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                callback(entry.intersectionRatio > 0);
+            });
+        }, options);
+        observer.observe(element);
     }
     renderPlayer(agentPubKey, elo) {
         const profile = this._allProfiles.value[agentPubKey];
@@ -55,24 +68,42 @@ export class EloRanking extends ScopedElementsMixin(LitElement) {
         `)}
     </div>`;
     }
+    renderRanking() {
+        var _a;
+        const rankingEntries = Object.entries((_a = this._eloRanking.value) === null || _a === void 0 ? void 0 : _a.ranking);
+        if (rankingEntries.length === 0)
+            return html ``;
+        return html `
+      <div class="flex-scrollable-parent">
+        <div class="flex-scrollable-container">
+          <div class="flex-scrollable-y">
+            <mwc-list noninteractive style="margin-right: 8px;">
+              ${rankingEntries.map(([eloRanking, agentsPubKeys]) => agentsPubKeys.map(agentPubKey => this.renderPlayer(agentPubKey, parseInt(eloRanking))))}
+            </mwc-list>
+
+            ${when(this._eloRanking.value.thereAreMoreChunksToFetch, () => html `
+                <div
+                  class="row"
+                  style="align-items: center; justify-content: center"
+                >
+                  <mwc-circular-progress
+                    indeterminate
+                    ${ref(el => el &&
+            this.respondToVisibility(el, visible => visible && this._rankingStore.fetchNextChunk()))}
+                  ></mwc-circular-progress>
+                </div>
+              `)}
+          </div>
+        </div>
+      </div>
+    `;
+    }
     render() {
         return html `
       <mwc-card style="flex: 1; min-width: 270px;">
         <div class="column" style="margin: 16px; flex: 1;">
           <span class="title">ELO Ranking</span>
-          ${this._loading
-            ? this.renderSkeleton()
-            : html `
-                <div class="flex-scrollable-parent">
-                  <div class="flex-scrollable-container">
-                    <div class="flex-scrollable-y">
-                      <mwc-list noninteractive style="margin-right: 8px;">
-                        ${this._eloRanking.value.map(e => this.renderPlayer(e.agentPubKey, e.elo))}
-                      </mwc-list>
-                    </div>
-                  </div>
-                </div>
-              `}
+          ${this._loading ? this.renderSkeleton() : this.renderRanking()}
         </div>
       </mwc-card>
     `;
@@ -84,6 +115,7 @@ export class EloRanking extends ScopedElementsMixin(LitElement) {
             'mwc-card': Card,
             'mwc-list': List,
             'mwc-list-item': ListItem,
+            'mwc-circular-progress': CircularProgress,
         };
     }
     static get styles() {
@@ -92,8 +124,11 @@ export class EloRanking extends ScopedElementsMixin(LitElement) {
 }
 __decorate([
     contextProvided({ context: eloStoreContext })
-], EloRanking.prototype, "_eloStore", void 0);
+], EloRankingElement.prototype, "_eloStore", void 0);
 __decorate([
     state()
-], EloRanking.prototype, "_loading", void 0);
+], EloRankingElement.prototype, "_loading", void 0);
+__decorate([
+    property({ type: Object })
+], EloRankingElement.prototype, "_rankingStore", void 0);
 //# sourceMappingURL=elo-ranking.js.map

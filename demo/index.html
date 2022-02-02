@@ -16,16 +16,16 @@
         ProfilePrompt,
         ProfilesStore,
         profilesStoreContext,
+        HoloIdenticon,
       } from '@holochain-open-dev/profiles';
-      import { AppWebsocket } from '@holochain/conductor-api';
       import { HolochainClient } from '@holochain-open-dev/cell-client';
       import { LitElement, html } from 'lit';
       import { ScopedElementsMixin } from '@open-wc/scoped-elements';
-      import { ContextProvider } from '@lit-labs/context';
+      import { ContextProvider } from '@holochain-open-dev/context';
 
       import {
         GameResultsHistory,
-        EloRanking,
+        EloRankingElement,
         EloStore,
         EloService,
         eloStoreContext,
@@ -41,15 +41,15 @@
         }
 
         async firstUpdated() {
-          const appWebsocket = await AppWebsocket.connect(
-            `ws://localhost:${process.env.HC_PORT}`
+          const client = await HolochainClient.connect(
+            `ws://localhost:${process.env.HC_PORT}`,
+            'my-app'
           );
-          const appInfo = await appWebsocket.appInfo({
-            installed_app_id: 'my-app',
-          });
 
-          const cellData = appInfo.cell_data[0];
-          const cellClient = new HolochainClient(appWebsocket, cellData);
+          const cellClient = client.forCell(
+            client.cellDataByRoleId('example-elo')
+          );
+
           const profileStore = new ProfilesStore(cellClient);
           const eloService = new EloService(cellClient, 'elo');
           const eloStore = new EloStore(eloService, profileStore);
@@ -74,7 +74,8 @@
           return {
             'profile-prompt': ProfilePrompt,
             'game-results-history': GameResultsHistory,
-            'elo-ranking': EloRanking,
+            'elo-ranking': EloRankingElement,
+            'holo-identicon': HoloIdenticon,
           };
         }
       }

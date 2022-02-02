@@ -72,6 +72,30 @@
             },
             {
               "kind": "method",
+              "name": "getEloRankingChunk",
+              "privacy": "public",
+              "return": {
+                "type": {
+                  "text": "Promise<EloRanking>"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "fromElo",
+                  "type": {
+                    "text": "number | undefined"
+                  }
+                },
+                {
+                  "name": "agentCount",
+                  "type": {
+                    "text": "number"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "method",
               "name": "resolveFlags",
               "privacy": "public",
               "return": {
@@ -79,24 +103,6 @@
                   "text": "Promise<void>"
                 }
               }
-            },
-            {
-              "kind": "method",
-              "name": "linkGameResults",
-              "privacy": "public",
-              "return": {
-                "type": {
-                  "text": "Promise<void>"
-                }
-              },
-              "parameters": [
-                {
-                  "name": "entryHashes",
-                  "type": {
-                    "text": "EntryHashB64[]"
-                  }
-                }
-              ]
             },
             {
               "kind": "method",
@@ -138,191 +144,6 @@
     },
     {
       "kind": "javascript-module",
-      "path": "src/elo-store.ts",
-      "declarations": [
-        {
-          "kind": "class",
-          "description": "",
-          "name": "EloStore",
-          "members": [
-            {
-              "kind": "field",
-              "name": "#gameResultsByAgent",
-              "privacy": "private",
-              "type": {
-                "text": "Writable<{\n    [key: string]: Array<[HoloHashed<any>, GameResult]>;\n  }>"
-              }
-            },
-            {
-              "kind": "field",
-              "name": "#elosByAgent",
-              "privacy": "private",
-              "type": {
-                "text": "Writable<{\n    [key: string]: number;\n  }>"
-              }
-            },
-            {
-              "kind": "field",
-              "name": "elos",
-              "privacy": "public"
-            },
-            {
-              "kind": "method",
-              "name": "eloForAgent",
-              "privacy": "public",
-              "parameters": [
-                {
-                  "name": "agent",
-                  "type": {
-                    "text": "AgentPubKeyB64"
-                  }
-                }
-              ]
-            },
-            {
-              "kind": "field",
-              "name": "eloRanking",
-              "privacy": "public"
-            },
-            {
-              "kind": "field",
-              "name": "gameResults",
-              "privacy": "public"
-            },
-            {
-              "kind": "field",
-              "name": "myElo",
-              "privacy": "public"
-            },
-            {
-              "kind": "field",
-              "name": "myGameResults",
-              "privacy": "public"
-            },
-            {
-              "kind": "field",
-              "name": "myAgentPubKey",
-              "privacy": "public"
-            },
-            {
-              "kind": "method",
-              "name": "getOpponent",
-              "return": {
-                "type": {
-                  "text": "AgentPubKeyB64"
-                }
-              },
-              "parameters": [
-                {
-                  "name": "gameResult",
-                  "type": {
-                    "text": "GameResult"
-                  }
-                }
-              ],
-              "description": "Helpers for the types"
-            },
-            {
-              "kind": "method",
-              "name": "getMyResult",
-              "return": {
-                "type": {
-                  "text": "number"
-                }
-              },
-              "parameters": [
-                {
-                  "name": "gameResult",
-                  "type": {
-                    "text": "GameResult"
-                  }
-                }
-              ]
-            },
-            {
-              "kind": "method",
-              "name": "fetchMyGameResults",
-              "description": "Backend actions"
-            },
-            {
-              "kind": "method",
-              "name": "fetchMyElo"
-            },
-            {
-              "kind": "method",
-              "name": "fetchGameResultsForAgents",
-              "return": {
-                "type": {
-                  "text": "Promise<void>"
-                }
-              },
-              "parameters": [
-                {
-                  "name": "agents",
-                  "type": {
-                    "text": "AgentPubKeyB64[]"
-                  }
-                }
-              ]
-            },
-            {
-              "kind": "method",
-              "name": "fetchEloForAgents",
-              "return": {
-                "type": {
-                  "text": "Promise<void>"
-                }
-              },
-              "parameters": [
-                {
-                  "name": "agents",
-                  "type": {
-                    "text": "AgentPubKeyB64[]"
-                  }
-                }
-              ]
-            },
-            {
-              "kind": "method",
-              "name": "handleNewGameResult",
-              "privacy": "private",
-              "parameters": [
-                {
-                  "name": "gameResult",
-                  "type": {
-                    "text": "GameResult"
-                  }
-                },
-                {
-                  "name": "gameResultHash",
-                  "type": {
-                    "text": "EntryHashB64"
-                  }
-                },
-                {
-                  "name": "areLinksMissing",
-                  "type": {
-                    "text": "boolean"
-                  }
-                }
-              ]
-            }
-          ]
-        }
-      ],
-      "exports": [
-        {
-          "kind": "js",
-          "name": "EloStore",
-          "declaration": {
-            "name": "EloStore",
-            "module": "src/elo-store.ts"
-          }
-        }
-      ]
-    },
-    {
-      "kind": "javascript-module",
       "path": "src/index.ts",
       "declarations": [],
       "exports": [
@@ -339,7 +160,7 @@
           "name": "*",
           "declaration": {
             "name": "*",
-            "package": "./elo-store"
+            "package": "./state/elo-store"
           }
         },
         {
@@ -458,12 +279,294 @@
     },
     {
       "kind": "javascript-module",
+      "path": "src/definitions/elo-ranking.ts",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "",
+          "name": "ER",
+          "superclass": {
+            "name": "EloRankingElement",
+            "module": "/src/elements/elo-ranking"
+          },
+          "tagName": "elo-ranking",
+          "customElement": true,
+          "attributes": [
+            {
+              "name": "_rankingStore",
+              "type": {
+                "text": "EloRankingStore"
+              },
+              "fieldName": "_rankingStore",
+              "inheritedFrom": {
+                "name": "EloRankingElement",
+                "module": "src/elements/elo-ranking.ts"
+              }
+            }
+          ],
+          "members": [
+            {
+              "kind": "field",
+              "name": "_eloStore",
+              "type": {
+                "text": "EloStore"
+              },
+              "inheritedFrom": {
+                "name": "EloRankingElement",
+                "module": "src/elements/elo-ranking.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "_loading",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "true",
+              "inheritedFrom": {
+                "name": "EloRankingElement",
+                "module": "src/elements/elo-ranking.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "_allProfiles",
+              "privacy": "private",
+              "default": "new StoreSubscriber(\n    this,\n    () => this._eloStore.profilesStore.knownProfiles\n  )",
+              "inheritedFrom": {
+                "name": "EloRankingElement",
+                "module": "src/elements/elo-ranking.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "_rankingStore",
+              "type": {
+                "text": "EloRankingStore"
+              },
+              "privacy": "private",
+              "attribute": "_rankingStore",
+              "inheritedFrom": {
+                "name": "EloRankingElement",
+                "module": "src/elements/elo-ranking.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "_eloRanking",
+              "privacy": "private",
+              "default": "new StoreSubscriber(this, () => this._rankingStore)",
+              "inheritedFrom": {
+                "name": "EloRankingElement",
+                "module": "src/elements/elo-ranking.ts"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "respondToVisibility",
+              "parameters": [
+                {
+                  "name": "element",
+                  "type": {
+                    "text": "HTMLElement"
+                  }
+                },
+                {
+                  "name": "callback",
+                  "type": {
+                    "text": "(visible: boolean) => void"
+                  }
+                }
+              ],
+              "inheritedFrom": {
+                "name": "EloRankingElement",
+                "module": "src/elements/elo-ranking.ts"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "renderPlayer",
+              "parameters": [
+                {
+                  "name": "agentPubKey",
+                  "type": {
+                    "text": "AgentPubKeyB64"
+                  }
+                },
+                {
+                  "name": "elo",
+                  "type": {
+                    "text": "number"
+                  }
+                }
+              ],
+              "inheritedFrom": {
+                "name": "EloRankingElement",
+                "module": "src/elements/elo-ranking.ts"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "renderSkeleton",
+              "inheritedFrom": {
+                "name": "EloRankingElement",
+                "module": "src/elements/elo-ranking.ts"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "renderRanking",
+              "inheritedFrom": {
+                "name": "EloRankingElement",
+                "module": "src/elements/elo-ranking.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "scopedElements",
+              "static": true,
+              "inheritedFrom": {
+                "name": "EloRankingElement",
+                "module": "src/elements/elo-ranking.ts"
+              }
+            }
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "kind": "custom-element-definition",
+          "name": "elo-ranking",
+          "declaration": {
+            "name": "ER",
+            "module": "src/definitions/elo-ranking.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/definitions/game-results-history.ts",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "",
+          "name": "GRH",
+          "superclass": {
+            "name": "GameResultsHistory",
+            "module": "/src/elements/game-results-history"
+          },
+          "tagName": "game-results-history",
+          "customElement": true,
+          "members": [
+            {
+              "kind": "field",
+              "name": "_eloStore",
+              "type": {
+                "text": "EloStore"
+              },
+              "inheritedFrom": {
+                "name": "GameResultsHistory",
+                "module": "src/elements/game-results-history.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "_knownProfiles",
+              "default": "new StoreSubscriber(\n    this,\n    () => this._eloStore.profilesStore.knownProfiles\n  )",
+              "inheritedFrom": {
+                "name": "GameResultsHistory",
+                "module": "src/elements/game-results-history.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "_myGameResults",
+              "default": "new StoreSubscriber(\n    this,\n    () => this._eloStore.myGameResults\n  )",
+              "inheritedFrom": {
+                "name": "GameResultsHistory",
+                "module": "src/elements/game-results-history.ts"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "getIcon",
+              "parameters": [
+                {
+                  "name": "result",
+                  "type": {
+                    "text": "GameResult"
+                  }
+                }
+              ],
+              "inheritedFrom": {
+                "name": "GameResultsHistory",
+                "module": "src/elements/game-results-history.ts"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "getColor",
+              "parameters": [
+                {
+                  "name": "result",
+                  "type": {
+                    "text": "GameResult"
+                  }
+                }
+              ],
+              "inheritedFrom": {
+                "name": "GameResultsHistory",
+                "module": "src/elements/game-results-history.ts"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "getSummary",
+              "inheritedFrom": {
+                "name": "GameResultsHistory",
+                "module": "src/elements/game-results-history.ts"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "renderResults",
+              "inheritedFrom": {
+                "name": "GameResultsHistory",
+                "module": "src/elements/game-results-history.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "scopedElements",
+              "static": true,
+              "inheritedFrom": {
+                "name": "GameResultsHistory",
+                "module": "src/elements/game-results-history.ts"
+              }
+            }
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "kind": "custom-element-definition",
+          "name": "game-results-history",
+          "declaration": {
+            "name": "GRH",
+            "module": "src/definitions/game-results-history.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
       "path": "src/elements/elo-ranking.ts",
       "declarations": [
         {
           "kind": "class",
           "description": "",
-          "name": "EloRanking",
+          "name": "EloRankingElement",
           "members": [
             {
               "kind": "field",
@@ -483,12 +586,41 @@
             {
               "kind": "field",
               "name": "_allProfiles",
+              "privacy": "private",
               "default": "new StoreSubscriber(\n    this,\n    () => this._eloStore.profilesStore.knownProfiles\n  )"
             },
             {
               "kind": "field",
+              "name": "_rankingStore",
+              "type": {
+                "text": "EloRankingStore"
+              },
+              "privacy": "private",
+              "attribute": "_rankingStore"
+            },
+            {
+              "kind": "field",
               "name": "_eloRanking",
-              "default": "new StoreSubscriber(this, () => this._eloStore.eloRanking)"
+              "privacy": "private",
+              "default": "new StoreSubscriber(this, () => this._rankingStore)"
+            },
+            {
+              "kind": "method",
+              "name": "respondToVisibility",
+              "parameters": [
+                {
+                  "name": "element",
+                  "type": {
+                    "text": "HTMLElement"
+                  }
+                },
+                {
+                  "name": "callback",
+                  "type": {
+                    "text": "(visible: boolean) => void"
+                  }
+                }
+              ]
             },
             {
               "kind": "method",
@@ -513,9 +645,22 @@
               "name": "renderSkeleton"
             },
             {
+              "kind": "method",
+              "name": "renderRanking"
+            },
+            {
               "kind": "field",
               "name": "scopedElements",
               "static": true
+            }
+          ],
+          "attributes": [
+            {
+              "name": "_rankingStore",
+              "type": {
+                "text": "EloRankingStore"
+              },
+              "fieldName": "_rankingStore"
             }
           ],
           "mixins": [
@@ -534,9 +679,9 @@
       "exports": [
         {
           "kind": "js",
-          "name": "EloRanking",
+          "name": "EloRankingElement",
           "declaration": {
-            "name": "EloRanking",
+            "name": "EloRankingElement",
             "module": "src/elements/elo-ranking.ts"
           }
         }
@@ -626,6 +771,259 @@
           "declaration": {
             "name": "GameResultsHistory",
             "module": "src/elements/game-results-history.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/state/elo-store.ts",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "",
+          "name": "EloStore",
+          "members": [
+            {
+              "kind": "field",
+              "name": "myAgentPubKey",
+              "privacy": "public"
+            },
+            {
+              "kind": "field",
+              "name": "#gameResultsByAgent",
+              "privacy": "private",
+              "type": {
+                "text": "Writable<{\n    [key: string]: Array<[HoloHashed<any>, GameResult]>;\n  }>"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "#elosByAgent",
+              "privacy": "private",
+              "type": {
+                "text": "Writable<{\n    [key: string]: number;\n  }>"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "elos",
+              "privacy": "public"
+            },
+            {
+              "kind": "method",
+              "name": "eloForAgent",
+              "privacy": "public",
+              "parameters": [
+                {
+                  "name": "agent",
+                  "type": {
+                    "text": "AgentPubKeyB64"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "field",
+              "name": "gameResults",
+              "privacy": "public"
+            },
+            {
+              "kind": "field",
+              "name": "myElo",
+              "privacy": "public"
+            },
+            {
+              "kind": "field",
+              "name": "myGameResults",
+              "privacy": "public"
+            },
+            {
+              "kind": "method",
+              "name": "createEloRankingStore",
+              "return": {
+                "type": {
+                  "text": "EloRankingStore"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "chunkSize",
+                  "type": {
+                    "text": "number"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "getOpponent",
+              "return": {
+                "type": {
+                  "text": "AgentPubKeyB64"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "gameResult",
+                  "type": {
+                    "text": "GameResult"
+                  }
+                }
+              ],
+              "description": "Helpers for the types"
+            },
+            {
+              "kind": "method",
+              "name": "getMyResult",
+              "return": {
+                "type": {
+                  "text": "number"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "gameResult",
+                  "type": {
+                    "text": "GameResult"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "fetchMyGameResults",
+              "description": "Backend actions"
+            },
+            {
+              "kind": "method",
+              "name": "fetchMyElo"
+            },
+            {
+              "kind": "method",
+              "name": "fetchGameResultsForAgents",
+              "return": {
+                "type": {
+                  "text": "Promise<void>"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "agents",
+                  "type": {
+                    "text": "AgentPubKeyB64[]"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "fetchEloForAgents",
+              "return": {
+                "type": {
+                  "text": "Promise<void>"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "agents",
+                  "type": {
+                    "text": "AgentPubKeyB64[]"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "handleNewGameResult",
+              "privacy": "private",
+              "parameters": [
+                {
+                  "name": "gameResult",
+                  "type": {
+                    "text": "GameResult"
+                  }
+                },
+                {
+                  "name": "gameResultHash",
+                  "type": {
+                    "text": "EntryHashB64"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "EloStore",
+          "declaration": {
+            "name": "EloStore",
+            "module": "src/state/elo-store.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/state/ranking-store.ts",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "",
+          "name": "EloRankingStore",
+          "members": [
+            {
+              "kind": "field",
+              "name": "#store",
+              "privacy": "private",
+              "type": {
+                "text": "Writable<ChunkedEloRanking>"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "subscribe",
+              "return": {
+                "type": {
+                  "text": "Unsubscriber"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "subscriber",
+                  "type": {
+                    "text": "Subscriber<ChunkedEloRanking>"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "fetchNextChunk"
+            },
+            {
+              "kind": "method",
+              "name": "newFromElo",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "number | undefined"
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "EloRankingStore",
+          "declaration": {
+            "name": "EloRankingStore",
+            "module": "src/state/ranking-store.ts"
           }
         }
       ]

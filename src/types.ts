@@ -1,5 +1,6 @@
 import {
   AgentPubKeyB64,
+  Dictionary,
   EntryHashB64,
   HeaderHashB64,
 } from '@holochain-open-dev/core-types';
@@ -21,3 +22,5 @@ export interface GameResult {
 export type CreateGameResultOutcome =
   | { type: 'Published'; game_result_hash: EntryHashB64 }
   | { type: 'OutdatedLastGameResult' };
+
+export type EloRanking = Dictionary<Array<AgentPubKeyB64>>;

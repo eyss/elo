@@ -1,11 +1,11 @@
 import { __decorate } from "tslib";
 import { html, LitElement } from 'lit';
 import { styleMap } from 'lit/directives/style-map.js';
-import { contextProvided } from '@lit-labs/context';
+import { contextProvided } from '@holochain-open-dev/context';
 import { Card, List, ListItem, Icon, CircularProgress, } from '@scoped-elements/material-web';
 import { StoreSubscriber } from 'lit-svelte-stores';
 import { ScopedElementsMixin } from '@open-wc/scoped-elements';
-import { ShortResult } from '../elo-store';
+import { ShortResult } from '../state/elo-store';
 import { eloStoreContext } from '../context';
 import { headerTimestamp } from '../utils';
 import { sharedStyles } from '../shared-styles';
