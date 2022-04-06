@@ -7,7 +7,7 @@ version = "0.1.0"
 
 [dependencies]
 
-hdk =  {version = "0.0.122", features = ["encoding"]}
+hdk =  {version = "0.0.126", features = ["encoding"]}
 serde = "1"
 skill-rating = "0.0.1"
-hc_lib_ranking_index = {git = "https://github.com/holochain-open-dev/ranking-index", rev = "69f2804f80832e0f98f931c53cdcfdf7746e0e45"}
+hc_lib_ranking_index = {git = "https://github.com/holochain-open-dev/ranking-index", rev = "for-hdk-v0.0.126"}

@@ -1,4 +1,4 @@
-use hdk::prelude::holo_hash::*;
+/*use hdk::prelude::holo_hash::*;
 use hdk::prelude::*;
 
 use crate::{
@@ -170,4 +170,4 @@ fn validate_elo_update_is_correct<S: EloRatingSystem>(
     }
 
     Ok(ValidateCallbackResult::Valid)
-}
+}*/

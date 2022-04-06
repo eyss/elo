@@ -36,6 +36,7 @@ pub fn index_game_result_if_not_exists<S: EloRatingSystem>(
         h.borrow().create_link(CreateLinkInput::new(
             player_entry_hash.clone(),
             game_result_hash.clone(),
+            LinkType(0),
             game_results_tag().into(),
             ChainTopOrdering::Relaxed,
         ))
@@ -101,6 +102,7 @@ pub(crate) fn create_unilateral_game_result_and_flag<S: EloRatingSystem>(
     create_link(
         AgentPubKey::from(opponent).into(),
         game_result_hash.clone(),
+        LinkType(0),
         unpublished_game_tag(),
     )?;
 
@@ -342,7 +344,7 @@ pub(crate) fn get_game_results_from_links(
                     if let Some(header) = header_for_author {
                         let game_result = entry_to_game_result(&entry_details.entry)?;
 
-                        results_for_agent.push((header.header_hashed().clone(), game_result));
+                        results_for_agent.push((header.hashed.clone(), game_result));
                     }
                 }
             }

@@ -16,7 +16,7 @@ pub use crate::game_result::{
         index_game_result_if_not_exists,
     },
     unpublished::try_resolve_unpublished_game_results,
-    validation::validate_entry_game_result,
+    //validation::validate_entry_game_result,
     GameResult, GameResultInfo,
 };
 pub use elo_ranking::*;

@@ -178,14 +178,15 @@ macro_rules! mixin_elo {
             Some(Schedule::Persisted(format!("* * * * *")))
         }
 
+        /*
         /**
          * Validate the game_results entry
-         */
+        */  
         #[hdk_extern]
         pub fn validate_create_entry_game_result(
             validate_data: ValidateData,
         ) -> ExternResult<ValidateCallbackResult> {
             $crate::validate_entry_game_result::<$elo_rating_system>(validate_data)
-        }
+        }*/
     };
 }
