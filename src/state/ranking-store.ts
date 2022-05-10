@@ -78,7 +78,7 @@ export class EloRankingStore implements Readable<ChunkedEloRanking> {
   }
 
   private newFromElo(ranking: EloRanking): number | undefined {
-    const elos = Object.keys(ranking).map(parseInt);
+    const elos = Object.keys(ranking).map(key => {return parseInt(key)});
     if (elos.length === 0) return undefined;
 
     return Math.min(...elos);
