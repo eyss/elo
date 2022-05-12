@@ -48,7 +48,7 @@ export class EloRankingStore {
         });
     }
     newFromElo(ranking) {
-        const elos = Object.keys(ranking).map(parseInt);
+        const elos = Object.keys(ranking).map(key => parseInt(key));
         if (elos.length === 0)
             return undefined;
         return Math.min(...elos);
