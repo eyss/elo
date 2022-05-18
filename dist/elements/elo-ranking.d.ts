@@ -13,10 +13,10 @@ export declare class EloRankingElement extends EloRankingElement_base {
     private _eloRanking;
     firstUpdated(): Promise<void>;
     respondToVisibility(element: HTMLElement, callback: (visible: boolean) => void): void;
-    renderPlayer(agentPubKey: AgentPubKeyB64, elo: number): import("lit").TemplateResult<1>;
-    renderSkeleton(): import("lit").TemplateResult<1>;
-    renderRanking(): import("lit").TemplateResult<1>;
-    render(): import("lit").TemplateResult<1>;
+    renderPlayer(agentPubKey: AgentPubKeyB64, elo: number): import("lit-html").TemplateResult<1>;
+    renderSkeleton(): import("lit-html").TemplateResult<1>;
+    renderRanking(): import("lit-html").TemplateResult<1>;
+    render(): import("lit-html").TemplateResult<1>;
     static get scopedElements(): {
         'sl-skeleton': typeof SlSkeleton;
         'agent-avatar': typeof AgentAvatar;

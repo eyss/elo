@@ -6,7 +6,7 @@ import { GameResult } from '../types';
 declare const GameResultsHistory_base: typeof LitElement & import("@open-wc/dedupe-mixin").Constructor<import("@open-wc/scoped-elements/types/src/types").ScopedElementsHost>;
 export declare class GameResultsHistory extends GameResultsHistory_base {
     _eloStore: EloStore;
-    _knownProfiles: StoreSubscriber<import("@holochain-open-dev/core-types").Dictionary<import("@holochain-open-dev/profiles").Profile>>;
+    _knownProfiles: StoreSubscriber<Record<string, import("@holochain-open-dev/profiles").Profile>>;
     _myGameResults: StoreSubscriber<[import("@holochain/client").HoloHashed<any>, GameResult][]>;
     firstUpdated(): Promise<void>;
     getIcon(result: GameResult): "thumb_up" | "thumb_down" | "drag_handle";
@@ -16,8 +16,8 @@ export declare class GameResultsHistory extends GameResultsHistory_base {
         0: number;
         1: number;
     };
-    renderResults(): import("lit").TemplateResult<1>;
-    render(): import("lit").TemplateResult<1>;
+    renderResults(): import("lit-html").TemplateResult<1>;
+    render(): import("lit-html").TemplateResult<1>;
     static get scopedElements(): {
         'mwc-icon': typeof Icon;
         'mwc-card': typeof Card;
