@@ -22,7 +22,7 @@
     "@holochain-open-dev/cell-client": "^0.3.5",
     "@holochain-open-dev/context": "^0.0.3",
     "@holochain-open-dev/core-types": "^0.2.0",
-    "@holochain-open-dev/profiles": "0.0.13",
+    "@holochain-open-dev/profiles": "0.0.14",
     "@holochain/client": "^0.3.2",
     "@open-wc/scoped-elements": "^2.1.1",
     "@scoped-elements/material-web": "^0.0.19",
