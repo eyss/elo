@@ -7,7 +7,7 @@ pub(crate) fn build_game_result_preflight(
 ) -> ExternResult<PreflightRequest> {
     let game_result_hash = hash_entry(game_result.clone())?;
 
-    let times = session_times_from_millis(1_000)?;
+    let times = session_times_from_millis(5_000)?;
 
     let agent_info = agent_info()?;
 
