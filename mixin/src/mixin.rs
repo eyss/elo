@@ -3,7 +3,7 @@ use hdk::prelude::*;
 
 use crate::{
     countersigning::sender::try_create_countersigned_game_result,
-    game_result::handlers::{build_new_game_result, create_unilateral_game_result_and_flag},
+    game_result::handlers::{build_new_game_result, create_unilateral_game_result_and_flag,element_to_game_result, index_game_result_if_not_exists},
     put_elo_rating_in_ranking, EloRatingSystem, GameResult,
 };
 
@@ -101,6 +101,21 @@ pub fn create_game_result_and_flag<S: EloRatingSystem>(
     create_unilateral_game_result_and_flag::<S>(new_game_result)
 }
 
+/**
+ * Called from close_game, index the game result
+ */
+pub fn index_game_result<S: EloRatingSystem>(game_result_hash: EntryHashB64) -> ExternResult<()> {
+    let hash = EntryHash::from(game_result_hash);
+    // TODO: remove linking from opponent when postcommit lands
+    let element = get(hash.clone(), GetOptions::default())?
+        .ok_or(WasmError::Guest("Could not get game result".into()))?;
+
+    let (_, game_result) = element_to_game_result(element)?;
+
+    index_game_result_if_not_exists::<S>(game_result.clone(), hash.clone())?;
+    Ok(())
+}
+
 #[macro_export]
 macro_rules! mixin_elo {
     ( $elo_rating_system:ty ) => {
@@ -164,22 +179,6 @@ macro_rules! mixin_elo {
                 $crate::index_game_result_if_not_exists::<$elo_rating_system>(game_result.clone(), hash.clone())?;
             }
 
-            Ok(())
-        }
-
-        /**
-         * Called from close_game, index the game result
-         */
-        #[hdk_extern]
-        pub fn index_game_result(game_result_hash: EntryHashB64) -> ExternResult<()> {
-            let hash = EntryHash::from(game_result_hash);
-            // TODO: remove linking from opponent when postcommit lands
-            let element = get(hash.clone(), GetOptions::default())?
-                .ok_or(WasmError::Guest("Could not get game result".into()))?;
-
-            let (_, game_result) = $crate::element_to_game_result(element)?;
-
-            $crate::index_game_result_if_not_exists::<$elo_rating_system>(game_result.clone(), hash.clone())?;
             Ok(())
         }
 

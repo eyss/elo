@@ -21,6 +21,6 @@ pub use crate::game_result::{
 };
 pub use elo_ranking::*;
 pub use mixin::{
-    attempt_create_countersigned_game_result, create_game_result_and_flag, init_elo,
+    attempt_create_countersigned_game_result, create_game_result_and_flag, init_elo, index_game_result,
     post_commit_elo,
 };
