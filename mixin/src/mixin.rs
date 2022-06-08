@@ -168,6 +168,22 @@ macro_rules! mixin_elo {
         }
 
         /**
+         * Called from close_game, index the game result
+         */
+        #[hdk_extern]
+        pub fn index_game_result(game_result_hash: EntryHashB64) -> ExternResult<()> {
+            let hash = EntryHash::from(game_result_hash);
+            // TODO: remove linking from opponent when postcommit lands
+            let element = get(hash.clone(), GetOptions::default())?
+                .ok_or(WasmError::Guest("Could not get game result".into()))?;
+
+            let (_, game_result) = $crate::element_to_game_result(element)?;
+
+            $crate::index_game_result_if_not_exists::<$elo_rating_system>(game_result.clone(), hash.clone())?;
+            Ok(())
+        }
+
+        /**
          * Get the game results for the given agents
          */
         #[hdk_extern(infallible)]
